@@ -24,6 +24,11 @@ struct RootTabView: View {
                     .tabItem {
                         Label("Archive", systemImage: "archivebox")
                     }
+
+                SettingsView()
+                    .tabItem {
+                        Label("Settings", systemImage: "gearshape")
+                    }
             }
         }
         #if os(iOS)

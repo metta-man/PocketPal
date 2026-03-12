@@ -56,6 +56,8 @@ final class VisionOCRService: OCRServicing {
             }
 
             request.recognitionLevel = .accurate
+            request.recognitionLanguages = OCRPreferences.selectedRecognitionLanguages()
+            request.automaticallyDetectsLanguage = true
             request.usesLanguageCorrection = true
 
             DispatchQueue.global(qos: .userInitiated).async {
@@ -75,7 +77,7 @@ final class VisionOCRService: OCRServicing {
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceThumbnailMaxPixelSize: 2_400
+            kCGImageSourceThumbnailMaxPixelSize: 3_200
         ]
 
         if let thumbnail = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) {
