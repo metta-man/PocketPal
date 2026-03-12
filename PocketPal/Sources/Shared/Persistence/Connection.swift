@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class Connection {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var providerRawValue: String
     var createdAt: Date
     var lastSyncAt: Date?

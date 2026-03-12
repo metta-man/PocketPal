@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class OCRResult {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var createdAt: Date
     var rawText: String
     var confidence: Double?

@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class SyncLog {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var connectionID: UUID
     var startedAt: Date
     var completedAt: Date?

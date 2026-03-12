@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class ReceiptAsset {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var receiptID: UUID
     var createdAt: Date
     var kindRawValue: String

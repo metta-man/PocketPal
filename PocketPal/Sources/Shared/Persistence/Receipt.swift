@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class Receipt {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var importedAt: Date
     var updatedAt: Date
     var reviewedAt: Date?
