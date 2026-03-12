@@ -27,37 +27,47 @@ struct InboxView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    inboxHero
-                        .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16))
-                        .listRowBackground(Color.clear)
-                }
+            ZStack {
+                Color.receiptGroupedBackground
+                    .ignoresSafeArea()
 
-                if receipts.isEmpty {
+                List {
                     Section {
-                        emptyStateCard
-                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
+                        inboxHero
+                            .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16))
                             .listRowBackground(Color.clear)
                     }
-                } else {
-                    Section {
-                        ForEach(receipts) { receipt in
-                            NavigationLink {
-                                ReceiptDetailView(receipt: receipt)
-                            } label: {
-                                ReceiptRowView(receipt: receipt)
+
+                    if receipts.isEmpty {
+                        Section {
+                            emptyStateCard
+                                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
+                                .listRowBackground(Color.clear)
+                        }
+                    } else {
+                        Section {
+                            ForEach(receipts) { receipt in
+                                NavigationLink {
+                                    ReceiptDetailView(receipt: receipt)
+                                } label: {
+                                    ReceiptRowView(receipt: receipt)
+                                }
+                                .buttonStyle(.plain)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                .listRowBackground(Color.clear)
                             }
-                            .buttonStyle(.plain)
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                            .listRowBackground(Color.clear)
                         }
                     }
                 }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Inbox")
-            .scrollContentBackground(.hidden)
-            .background(Color.receiptGroupedBackground)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.receiptGroupedBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.receiptGroupedBackground, for: .tabBar)
+            .toolbarBackground(.visible, for: .tabBar)
             .overlay {
                 if isImporting {
                     ProgressView("Saving Receipt...")
@@ -144,12 +154,14 @@ struct InboxView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Capture receipts without losing the original file.")
                     .font(.title2.weight(.bold))
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("Every import is copied into app storage, queued for OCR, and kept ready for later verification or export.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            HStack(spacing: 10) {
+            LazyVGrid(columns: summaryColumns, alignment: .leading, spacing: 10) {
                 summaryChip(title: "\(receipts.count)", subtitle: "Inbox")
                 summaryChip(title: "\(readyCount)", subtitle: "Ready")
                 summaryChip(title: "\(processingCount)", subtitle: "Processing")
@@ -175,6 +187,8 @@ struct InboxView: View {
             Text(subtitle)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
@@ -198,7 +212,7 @@ struct InboxView: View {
     }
 
     private var importActions: some View {
-        HStack(spacing: 12) {
+        LazyVGrid(columns: actionColumns, alignment: .leading, spacing: 12) {
             actionButton(
                 title: "Files",
                 subtitle: "PDF, JPG, PNG, HEIC",
@@ -229,6 +243,14 @@ struct InboxView: View {
         .disabled(isImporting)
     }
 
+    private var summaryColumns: [GridItem] {
+        [GridItem(.adaptive(minimum: 92), spacing: 10, alignment: .top)]
+    }
+
+    private var actionColumns: [GridItem] {
+        [GridItem(.adaptive(minimum: 150), spacing: 12, alignment: .top)]
+    }
+
     private func actionButton(
         title: String,
         subtitle: String,
@@ -254,6 +276,8 @@ struct InboxView: View {
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 94, alignment: .leading)

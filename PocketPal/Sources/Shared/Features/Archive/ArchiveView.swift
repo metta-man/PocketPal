@@ -39,47 +39,57 @@ struct ArchiveView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Archive")
-                            .font(.title2.weight(.bold))
-                        Text("Search merchants or raw OCR text, then narrow by review state.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+            ZStack {
+                Color.receiptGroupedBackground
+                    .ignoresSafeArea()
 
-                        Picker("Status", selection: $filter) {
-                            ForEach(ArchiveFilter.allCases) { filter in
-                                Text(filter.rawValue).tag(filter)
+                List {
+                    Section {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Archive")
+                                .font(.title2.weight(.bold))
+                            Text("Search merchants or raw OCR text, then narrow by review state.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Picker("Status", selection: $filter) {
+                                ForEach(ArchiveFilter.allCases) { filter in
+                                    Text(filter.rawValue).tag(filter)
+                                }
                             }
+                            .pickerStyle(.segmented)
                         }
-                        .pickerStyle(.segmented)
-                    }
-                    .padding(20)
-                    .background(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color.receiptCardBackground)
-                    )
-                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 10, trailing: 16))
-                    .listRowBackground(Color.clear)
-                }
-
-                Section {
-                    ForEach(filteredReceipts) { receipt in
-                        NavigationLink {
-                            ReceiptDetailView(receipt: receipt)
-                        } label: {
-                            ReceiptRowView(receipt: receipt)
-                        }
-                        .buttonStyle(.plain)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                        .padding(20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .fill(Color.receiptCardBackground)
+                        )
+                        .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 10, trailing: 16))
                         .listRowBackground(Color.clear)
                     }
+
+                    Section {
+                        ForEach(filteredReceipts) { receipt in
+                            NavigationLink {
+                                ReceiptDetailView(receipt: receipt)
+                            } label: {
+                                ReceiptRowView(receipt: receipt)
+                            }
+                            .buttonStyle(.plain)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                            .listRowBackground(Color.clear)
+                        }
+                    }
                 }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             }
-            .scrollContentBackground(.hidden)
-            .background(Color.receiptGroupedBackground)
             .searchable(text: $searchText, prompt: "Merchant or OCR text")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.receiptGroupedBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.receiptGroupedBackground, for: .tabBar)
+            .toolbarBackground(.visible, for: .tabBar)
         }
     }
 }

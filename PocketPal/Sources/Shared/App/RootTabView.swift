@@ -1,19 +1,43 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 struct RootTabView: View {
     var body: some View {
-        TabView {
-            InboxView()
-                .tabItem {
-                    Label("Inbox", systemImage: "tray.full")
-                }
+        ZStack {
+            Color.receiptGroupedBackground
+                .ignoresSafeArea()
 
-            ArchiveView()
-                .tabItem {
-                    Label("Archive", systemImage: "archivebox")
+            TabView {
+                InboxView()
+                    .tabItem {
+                        Label("Inbox", systemImage: "tray.full")
+                    }
+
+                ArchiveView()
+                    .tabItem {
+                        Label("Archive", systemImage: "archivebox")
                 }
+            }
         }
+        #if os(iOS)
+        .onAppear(perform: forceFullScreenWindowSize)
+        #endif
     }
+
+    #if os(iOS)
+    private func forceFullScreenWindowSize() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let sizeRestrictions = windowScene.sizeRestrictions else {
+            return
+        }
+
+        let screenSize = UIScreen.main.bounds.size
+        sizeRestrictions.minimumSize = screenSize
+        sizeRestrictions.maximumSize = screenSize
+    }
+    #endif
 }
 
 #Preview {
