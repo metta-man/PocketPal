@@ -58,7 +58,8 @@ enum PocketPalModelContainer {
         let storeURL = try persistentStoreURL()
         return ModelConfiguration(
             schema: schema,
-            url: storeURL
+            url: storeURL,
+            cloudKitDatabase: .automatic
         )
     }
 

@@ -32,6 +32,7 @@
 		2A410825B6DAD360595BFBE5 /* PDFPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBB9A8A0E3C7F77B7648C72B /* PDFPreviewView.swift */; };
 		2A6EB69036E352576C277FCB /* AmountParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A32D01A74D2D0127345504D /* AmountParser.swift */; };
 		2B7490D754AFF1A20CE626C6 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED57B7F909AAECD2232F20A5 /* DashboardView.swift */; };
+		2BFC2127AA5A5EB965B2F013 /* CloudSyncConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06A65BDF776BE4EC2FBC8E84 /* CloudSyncConfiguration.swift */; };
 		308184D55745AD516FD825FB /* OCRResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A82D433B15104FE26C95067 /* OCRResult.swift */; };
 		41C3175BCD8D76DAAAFE98C0 /* ReceiptCategoryClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965224CC2EF7201A0203B421 /* ReceiptCategoryClassifier.swift */; };
 		4478391BEE04767FDF900AE9 /* PlatformImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF942768942B9114A43D7549 /* PlatformImage.swift */; };
@@ -52,6 +53,7 @@
 		668374FAB56EA30F5D7F0321 /* ReceiptThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE39E3D91F5DE03EC5D640C0 /* ReceiptThumbnailView.swift */; };
 		670F3D882ECBEDA464414B90 /* ImportReceiptUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F3D36F0206FD4B9E7D5082 /* ImportReceiptUseCase.swift */; };
 		73C3F3091A691F0C7B2DAAA3 /* PocketPalModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A16F89C06376573AAAF4E /* PocketPalModelContainer.swift */; };
+		75D296FA9D32BDAF7998D592 /* CloudSyncConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06A65BDF776BE4EC2FBC8E84 /* CloudSyncConfiguration.swift */; };
 		79DAD160E4475F1A87C8D71C /* PDFPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBB9A8A0E3C7F77B7648C72B /* PDFPreviewView.swift */; };
 		873E4A03BA1CB8B7110EFC33 /* ReceiptExtraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35FC5E26FF2ED7E4B816F19D /* ReceiptExtraction.swift */; };
 		88E891B4D702D8C7A10D1DB2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B877EB79C96233022B236F9 /* SettingsView.swift */; };
@@ -86,6 +88,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		06A65BDF776BE4EC2FBC8E84 /* CloudSyncConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncConfiguration.swift; sourceTree = "<group>"; };
 		0B877EB79C96233022B236F9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		1E977F77EACD033B40C14050 /* PocketPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketPalApp.swift; sourceTree = "<group>"; };
 		35FC5E26FF2ED7E4B816F19D /* ReceiptExtraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptExtraction.swift; sourceTree = "<group>"; };
@@ -309,6 +312,7 @@
 		C559DAA6D3E5B70E7FB1262C /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
+				06A65BDF776BE4EC2FBC8E84 /* CloudSyncConfiguration.swift */,
 				B7DAC5A115885ACEEFB9613E /* Connection.swift */,
 				6A82D433B15104FE26C95067 /* OCRResult.swift */,
 				957A16F89C06376573AAAF4E /* PocketPalModelContainer.swift */,
@@ -443,6 +447,7 @@
 				28A3A4AE7BB381939E04C6B9 /* AmountParser.swift in Sources */,
 				5CE9E1DDD9B695CCD32B0A08 /* AppEnvironment.swift in Sources */,
 				448521415F49C354B68065C1 /* ArchiveView.swift in Sources */,
+				2BFC2127AA5A5EB965B2F013 /* CloudSyncConfiguration.swift in Sources */,
 				65F2467670CF9D6B14F13780 /* Connection.swift in Sources */,
 				B261E61B2212CAD7514F08EC /* ConnectionModels.swift in Sources */,
 				2B7490D754AFF1A20CE626C6 /* DashboardView.swift in Sources */,
@@ -487,6 +492,7 @@
 				2A6EB69036E352576C277FCB /* AmountParser.swift in Sources */,
 				074C67B54A877A783A6A9EF9 /* AppEnvironment.swift in Sources */,
 				A2B17B3DC19A2ACA9085F868 /* ArchiveView.swift in Sources */,
+				75D296FA9D32BDAF7998D592 /* CloudSyncConfiguration.swift in Sources */,
 				04E92A5FF477294F2BEB6435 /* Connection.swift in Sources */,
 				65ACF0E14C44A2928A317049 /* ConnectionModels.swift in Sources */,
 				19FF7CC2B1051A62C6D06C1D /* DashboardView.swift in Sources */,
@@ -655,6 +661,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "PocketPal/Config/PocketPal-iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = VU5N8NSBSN;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -674,7 +681,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.lumilux.pocketpal.ios;
 				PRODUCT_NAME = PocketPal;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -682,6 +689,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "PocketPal/Config/PocketPal-macOS.entitlements";
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = PocketPal;
@@ -701,6 +709,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "PocketPal/Config/PocketPal-macOS.entitlements";
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = PocketPal;
@@ -720,6 +729,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "PocketPal/Config/PocketPal-iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = VU5N8NSBSN;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -739,7 +749,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.lumilux.pocketpal.ios;
 				PRODUCT_NAME = PocketPal;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};

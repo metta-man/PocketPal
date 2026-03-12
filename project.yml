@@ -14,6 +14,15 @@ targets:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
+    entitlements:
+      path: PocketPal/Config/PocketPal-iOS.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.lumilux.pocketpal
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.developer.ubiquity-container-identifiers:
+          - iCloud.com.lumilux.pocketpal
     sources:
       - path: PocketPal/Sources/Shared
         excludes:
@@ -24,7 +33,8 @@ targets:
       base:
         PRODUCT_NAME: PocketPal
         PRODUCT_BUNDLE_IDENTIFIER: com.lumilux.pocketpal.ios
-        TARGETED_DEVICE_FAMILY: 1
+        CODE_SIGN_ENTITLEMENTS: PocketPal/Config/PocketPal-iOS.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: PocketPal
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.finance
@@ -41,6 +51,15 @@ targets:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
+    entitlements:
+      path: PocketPal/Config/PocketPal-macOS.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.lumilux.pocketpal
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.developer.ubiquity-container-identifiers:
+          - iCloud.com.lumilux.pocketpal
     sources:
       - path: PocketPal/Sources/Shared
         excludes:
@@ -52,6 +71,7 @@ targets:
       base:
         PRODUCT_NAME: PocketPal
         PRODUCT_BUNDLE_IDENTIFIER: com.lumilux.pocketpal.macos
+        CODE_SIGN_ENTITLEMENTS: PocketPal/Config/PocketPal-macOS.entitlements
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: PocketPal
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.finance

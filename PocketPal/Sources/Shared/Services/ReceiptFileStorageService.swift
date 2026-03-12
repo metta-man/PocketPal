@@ -22,9 +22,14 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
     private let fileManager: FileManager
     private let storageRootName = "PocketPal"
     private let receiptsFolderName = "Receipts"
+    private let cloudContainerIdentifier: String
 
-    init(fileManager: FileManager = .default) {
+    init(
+        fileManager: FileManager = .default,
+        cloudContainerIdentifier: String = CloudSyncConfiguration.containerIdentifier
+    ) {
         self.fileManager = fileManager
+        self.cloudContainerIdentifier = cloudContainerIdentifier
     }
 
     func storeImportedFile(from sourceURL: URL, receiptID: UUID) throws -> StoredReceiptFile {
@@ -113,18 +118,8 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
     }
 
     private func baseDirectory() -> URL {
-        let appSupport = try? fileManager.url(
-            for: .documentDirectory,
-            in: .userDomainMask,
-            appropriateFor: nil,
-            create: true
-        )
-        let base = appSupport.map {
-            $0.appending(path: storageRootName, directoryHint: .isDirectory)
-                .appending(path: receiptsFolderName, directoryHint: .isDirectory)
-                .standardizedFileURL
-                .resolvingSymlinksInPath()
-        }
+        let localBase = localBaseDirectory()
+        let base = preferredBaseDirectory() ?? localBase
 
         guard let base else {
             return URL(filePath: NSTemporaryDirectory(), directoryHint: .isDirectory)
@@ -132,11 +127,96 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
                 .appending(path: receiptsFolderName, directoryHint: .isDirectory)
         }
 
-        if !fileManager.fileExists(atPath: base.path()) {
-            try? fileManager.createDirectory(at: base, withIntermediateDirectories: true)
+        if let localBase, base != localBase {
+            migrateLocalFilesIfNeeded(from: localBase, to: base)
         }
 
+        ensureDirectoryExists(at: base)
         return base
+    }
+
+    private func preferredBaseDirectory() -> URL? {
+        guard let ubiquityContainer = iCloudBaseDirectory() else {
+            return nil
+        }
+
+        return ubiquityContainer
+            .appending(path: storageRootName, directoryHint: .isDirectory)
+            .appending(path: receiptsFolderName, directoryHint: .isDirectory)
+            .standardizedFileURL
+            .resolvingSymlinksInPath()
+    }
+
+    private func iCloudBaseDirectory() -> URL? {
+        guard fileManager.ubiquityIdentityToken != nil else {
+            return nil
+        }
+
+        guard let ubiquityContainer = fileManager.url(forUbiquityContainerIdentifier: cloudContainerIdentifier) else {
+            return nil
+        }
+
+        return ubiquityContainer
+            .appending(path: "Documents", directoryHint: .isDirectory)
+            .standardizedFileURL
+            .resolvingSymlinksInPath()
+    }
+
+    private func localBaseDirectory() -> URL? {
+        guard let appSupport = try? fileManager.url(
+            for: .documentDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        ) else {
+            return nil
+        }
+
+        return appSupport
+            .appending(path: storageRootName, directoryHint: .isDirectory)
+            .appending(path: receiptsFolderName, directoryHint: .isDirectory)
+            .standardizedFileURL
+            .resolvingSymlinksInPath()
+    }
+
+    private func ensureDirectoryExists(at url: URL) {
+        if !fileManager.fileExists(atPath: url.path()) {
+            try? fileManager.createDirectory(at: url, withIntermediateDirectories: true)
+        }
+    }
+
+    private func migrateLocalFilesIfNeeded(from sourceBase: URL, to destinationBase: URL) {
+        guard fileManager.fileExists(atPath: sourceBase.path()) else {
+            return
+        }
+
+        ensureDirectoryExists(at: destinationBase)
+
+        guard let enumerator = fileManager.enumerator(
+            at: sourceBase,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return
+        }
+
+        for case let sourceURL as URL in enumerator {
+            let relativePath = sourceURL.path.replacingOccurrences(of: sourceBase.path + "/", with: "")
+            let destinationURL = destinationBase.appending(path: relativePath)
+            let isDirectory = (try? sourceURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+
+            if isDirectory {
+                ensureDirectoryExists(at: destinationURL)
+                continue
+            }
+
+            guard !fileManager.fileExists(atPath: destinationURL.path()) else {
+                continue
+            }
+
+            ensureDirectoryExists(at: destinationURL.deletingLastPathComponent())
+            try? fileManager.copyItem(at: sourceURL, to: destinationURL)
+        }
     }
 
     private func relativePath(for absoluteURL: URL) -> String {
