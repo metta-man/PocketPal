@@ -82,14 +82,18 @@ struct ArchiveView: View {
                     }
                 }
                 .listStyle(.plain)
+                #if os(iOS)
                 .scrollContentBackground(.hidden)
+                #endif
             }
             .searchable(text: $searchText, prompt: "Merchant or OCR text")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.receiptGroupedBackground, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(Color.receiptGroupedBackground, for: .tabBar)
             .toolbarBackground(.visible, for: .tabBar)
+            #endif
         }
     }
 }

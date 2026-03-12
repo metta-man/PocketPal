@@ -60,14 +60,18 @@ struct InboxView: View {
                     }
                 }
                 .listStyle(.plain)
+                #if os(iOS)
                 .scrollContentBackground(.hidden)
+                #endif
             }
             .navigationTitle("Inbox")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.receiptGroupedBackground, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(Color.receiptGroupedBackground, for: .tabBar)
             .toolbarBackground(.visible, for: .tabBar)
+            #endif
             .overlay {
                 if isImporting {
                     ProgressView("Saving Receipts...")

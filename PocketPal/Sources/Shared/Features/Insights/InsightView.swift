@@ -93,14 +93,18 @@ struct InsightView: View {
                     }
                 }
                 .listStyle(.plain)
+                #if os(iOS)
                 .scrollContentBackground(.hidden)
+                #endif
             }
             .navigationTitle("Insights")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.receiptGroupedBackground, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(Color.receiptGroupedBackground, for: .tabBar)
             .toolbarBackground(.visible, for: .tabBar)
+            #endif
         }
     }
 

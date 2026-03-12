@@ -22,6 +22,15 @@ final class Receipt {
     var extractionConfidence: Double?
     var searchText: String
 
+    // MARK: - Expense Classification (for tax/business use)
+    var expenseTypeRawValue: String
+    var taxCategoryRawValue: String?
+
+    // MARK: - Source Tracking (for email/ecommerce imports)
+    var sourceProviderRawValue: String?
+    var sourceOrderID: String?
+    var sourceEmailID: String?
+
     @Relationship(deleteRule: .cascade, inverse: \ReceiptAsset.receipt) var asset: ReceiptAsset?
     @Relationship(deleteRule: .cascade, inverse: \OCRResult.receipt) var ocrResult: OCRResult?
 
@@ -41,7 +50,12 @@ final class Receipt {
         category: String? = nil,
         notes: String? = nil,
         extractionConfidence: Double? = nil,
-        searchText: String = ""
+        searchText: String = "",
+        expenseType: ExpenseType = .personal,
+        taxCategory: TaxCategory? = nil,
+        sourceProvider: ConnectionProvider? = nil,
+        sourceOrderID: String? = nil,
+        sourceEmailID: String? = nil
     ) {
         self.id = id
         self.importedAt = importedAt
@@ -61,6 +75,11 @@ final class Receipt {
         self.notes = notes
         self.extractionConfidence = extractionConfidence
         self.searchText = searchText
+        self.expenseTypeRawValue = expenseType.rawValue
+        self.taxCategoryRawValue = taxCategory?.rawValue
+        self.sourceProviderRawValue = sourceProvider?.rawValue
+        self.sourceOrderID = sourceOrderID
+        self.sourceEmailID = sourceEmailID
     }
 
     var reviewStatus: ReceiptReviewStatus {
@@ -76,6 +95,27 @@ final class Receipt {
     var processingState: ReceiptProcessingState {
         get { ReceiptProcessingState(rawValue: processingStateRawValue) ?? .queued }
         set { processingStateRawValue = newValue.rawValue }
+    }
+
+    var expenseType: ExpenseType {
+        get { ExpenseType(rawValue: expenseTypeRawValue) ?? .personal }
+        set { expenseTypeRawValue = newValue.rawValue }
+    }
+
+    var taxCategory: TaxCategory? {
+        get {
+            guard let raw = taxCategoryRawValue else { return nil }
+            return TaxCategory(rawValue: raw)
+        }
+        set { taxCategoryRawValue = newValue?.rawValue }
+    }
+
+    var sourceProvider: ConnectionProvider? {
+        get {
+            guard let raw = sourceProviderRawValue else { return nil }
+            return ConnectionProvider(rawValue: raw)
+        }
+        set { sourceProviderRawValue = newValue?.rawValue }
     }
 
     var processingStatusLabel: String {
@@ -120,6 +160,10 @@ final class Receipt {
             itemDescription,
             category,
             notes,
+            expenseType.displayName,
+            taxCategory?.displayName,
+            sourceProvider?.displayName,
+            sourceOrderID,
             ocrResult?.rawText
         ]
         .compactMap { $0 }

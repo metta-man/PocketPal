@@ -10,6 +10,11 @@ struct RootTabView: View {
                 .ignoresSafeArea()
 
             TabView {
+                DashboardView()
+                    .tabItem {
+                        Label("Dashboard", systemImage: "house")
+                    }
+
                 InboxView()
                     .tabItem {
                         Label("Inbox", systemImage: "tray.full")

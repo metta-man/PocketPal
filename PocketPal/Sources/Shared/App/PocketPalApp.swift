@@ -10,12 +10,7 @@ struct PocketPalApp: App {
     private let services: ServiceContainer
 
     init() {
-        do {
-            container = try PocketPalModelContainer.make()
-        } catch {
-            fatalError("Failed to initialize SwiftData container: \(error)")
-        }
-
+        container = PocketPalModelContainer.makeWithFallback()
         services = ServiceContainer()
     }
 

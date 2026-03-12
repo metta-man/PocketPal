@@ -46,6 +46,7 @@ targets:
         excludes:
           - Platform/iOS
           - Platform/macOS
+          - Resources/LaunchScreen.storyboard
       - path: PocketPal/Sources/Shared/Platform/macOS
     settings:
       base:

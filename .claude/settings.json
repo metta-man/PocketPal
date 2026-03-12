@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xcodebuild -scheme PocketPal-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build)",
+      "Bash(xcodegen generate:*)"
+    ]
+  }
+}

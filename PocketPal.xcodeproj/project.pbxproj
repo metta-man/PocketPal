@@ -8,17 +8,20 @@
 
 /* Begin PBXBuildFile section */
 		049A925A5414AEAE50DD1329 /* ReceiptEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A9F40613E78D30EB54B646 /* ReceiptEnums.swift */; };
+		04E92A5FF477294F2BEB6435 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DAC5A115885ACEEFB9613E /* Connection.swift */; };
 		052F7A6B9664EF8E53CC229D /* ReceiptStatusPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6226D0C366BB9370B2AC25D6 /* ReceiptStatusPill.swift */; };
 		0642AA0709AA81E8BDB4F6C0 /* Receipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDEF9A789649D907EF5353F /* Receipt.swift */; };
 		0708CABB741D7AE7584E5FB8 /* Receipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDEF9A789649D907EF5353F /* Receipt.swift */; };
 		074C67B54A877A783A6A9EF9 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D09C2D1BC0D8E024EA7F47 /* AppEnvironment.swift */; };
 		075B9F12213D6336E01F9BE1 /* ReceiptExtractionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE5F06A637B2E7D90B29DF2 /* ReceiptExtractionService.swift */; };
+		0AF873F684DC69A09CC0F5D4 /* SyncLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AF97E72B7A95406BBDF23AF /* SyncLog.swift */; };
 		0D212C8953979A5163EEF404 /* OCRPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981C1248BD3C68BE8E82260C /* OCRPreferences.swift */; };
 		0FE9CA32000227D68E5F7AE7 /* PreviewSampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96121A2F2EE091D0C9914EFA /* PreviewSampleData.swift */; };
 		10C1925F0BA3817FAAA9ABE7 /* PlatformColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5C9E9DEF4E5DA43045A80BE /* PlatformColors.swift */; };
 		10F29D228D277B9CE6D1AA35 /* InsightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41F6FCAD5CBAACC5524168A5 /* InsightView.swift */; };
 		1545136FF57E427CC0D9DE78 /* ReceiptProcessingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA8D13A239967ED1E971466 /* ReceiptProcessingState.swift */; };
 		174882C1ED0222165BCFE22C /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91A19124DFD4A0DDE61B429 /* ServiceContainer.swift */; };
+		19FF7CC2B1051A62C6D06C1D /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED57B7F909AAECD2232F20A5 /* DashboardView.swift */; };
 		20C10097342ABE0CF53C3697 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D8F619E58F28DCDF82866A /* RootTabView.swift */; };
 		226D8B97C0DE6B1C2EFC63DC /* ReceiptAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91926B3C39149F1797837C08 /* ReceiptAsset.swift */; };
 		2783990DCCCCAAF783760E97 /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B7C8036FE15B9F2988A4247 /* InboxView.swift */; };
@@ -28,6 +31,7 @@
 		2A347425FCCBB5807A0B23F5 /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EBDFFFC87C3634763B8E60 /* OCRService.swift */; };
 		2A410825B6DAD360595BFBE5 /* PDFPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBB9A8A0E3C7F77B7648C72B /* PDFPreviewView.swift */; };
 		2A6EB69036E352576C277FCB /* AmountParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A32D01A74D2D0127345504D /* AmountParser.swift */; };
+		2B7490D754AFF1A20CE626C6 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED57B7F909AAECD2232F20A5 /* DashboardView.swift */; };
 		308184D55745AD516FD825FB /* OCRResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A82D433B15104FE26C95067 /* OCRResult.swift */; };
 		41C3175BCD8D76DAAAFE98C0 /* ReceiptCategoryClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965224CC2EF7201A0203B421 /* ReceiptCategoryClassifier.swift */; };
 		4478391BEE04767FDF900AE9 /* PlatformImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF942768942B9114A43D7549 /* PlatformImage.swift */; };
@@ -43,6 +47,8 @@
 		5B7F591D143B4E9A92D05E25 /* DocumentScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B65C0507B237A0A48F09B6 /* DocumentScannerView.swift */; };
 		5CE9E1DDD9B695CCD32B0A08 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D09C2D1BC0D8E024EA7F47 /* AppEnvironment.swift */; };
 		5E87F74D00FC15C84147F3D7 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B877EB79C96233022B236F9 /* SettingsView.swift */; };
+		65ACF0E14C44A2928A317049 /* ConnectionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFE2A8CCB9B76BF8C61A98D8 /* ConnectionModels.swift */; };
+		65F2467670CF9D6B14F13780 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DAC5A115885ACEEFB9613E /* Connection.swift */; };
 		668374FAB56EA30F5D7F0321 /* ReceiptThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE39E3D91F5DE03EC5D640C0 /* ReceiptThumbnailView.swift */; };
 		670F3D882ECBEDA464414B90 /* ImportReceiptUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F3D36F0206FD4B9E7D5082 /* ImportReceiptUseCase.swift */; };
 		73C3F3091A691F0C7B2DAAA3 /* PocketPalModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A16F89C06376573AAAF4E /* PocketPalModelContainer.swift */; };
@@ -50,6 +56,7 @@
 		873E4A03BA1CB8B7110EFC33 /* ReceiptExtraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35FC5E26FF2ED7E4B816F19D /* ReceiptExtraction.swift */; };
 		88E891B4D702D8C7A10D1DB2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B877EB79C96233022B236F9 /* SettingsView.swift */; };
 		8FDB49BABCB389D5F5199971 /* ReceiptAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91926B3C39149F1797837C08 /* ReceiptAsset.swift */; };
+		8FE55DA2B44EB263C64812E5 /* SyncLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AF97E72B7A95406BBDF23AF /* SyncLog.swift */; };
 		90FC4055312CD82CD6888E38 /* ReceiptDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A23EC30EFCBEC416FFD096C /* ReceiptDetailView.swift */; };
 		97AC746EB33B3751FD7D08AA /* ReceiptFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB690B02AD565EB613302691 /* ReceiptFileStorageService.swift */; };
 		A18F889F3E7BD36E88E28019 /* ImportedReceiptDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C084E3F1A4FB5F1E918DFE /* ImportedReceiptDocument.swift */; };
@@ -59,16 +66,18 @@
 		A7999D906F84A45A859681C1 /* PocketPalModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A16F89C06376573AAAF4E /* PocketPalModelContainer.swift */; };
 		A800F8320567E8AA42447657 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D8F619E58F28DCDF82866A /* RootTabView.swift */; };
 		B067CCDFF916D4088178C084 /* ImportReceiptUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F3D36F0206FD4B9E7D5082 /* ImportReceiptUseCase.swift */; };
+		B261E61B2212CAD7514F08EC /* ConnectionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFE2A8CCB9B76BF8C61A98D8 /* ConnectionModels.swift */; };
 		B8EA4FAE78D9E9A3D3C1F6B1 /* PlatformImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF942768942B9114A43D7549 /* PlatformImage.swift */; };
+		BC1F087616714DD45E4CF39F /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8611DE49154B10DD624DBD37 /* KeychainService.swift */; };
 		BE1B591F3CAA00951C984862 /* ReceiptStatusPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6226D0C366BB9370B2AC25D6 /* ReceiptStatusPill.swift */; };
 		C0D6E10585F29B46545A4CE5 /* ReceiptAssetPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7538A81BCB7FB6C051F0118B /* ReceiptAssetPreview.swift */; };
-		C14F51CBDFF20B5C3353C875 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5A05481058DB08EF57C6DDD5 /* LaunchScreen.storyboard */; };
 		C78CBAC1123B96CFF368ED38 /* OCRPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981C1248BD3C68BE8E82260C /* OCRPreferences.swift */; };
 		CBF005094C828ED0E285D7CB /* ReceiptCategoryClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965224CC2EF7201A0203B421 /* ReceiptCategoryClassifier.swift */; };
 		D22FB813296A451603B6A822 /* PlatformColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5C9E9DEF4E5DA43045A80BE /* PlatformColors.swift */; };
 		D34C003EEA0772FF4F2D365E /* PocketPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E977F77EACD033B40C14050 /* PocketPalApp.swift */; };
 		DB906339CDCCD2E972C20E1F /* PreviewSampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96121A2F2EE091D0C9914EFA /* PreviewSampleData.swift */; };
 		DC2A51776BBD3EE109F930C1 /* ReceiptExtractionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE5F06A637B2E7D90B29DF2 /* ReceiptExtractionService.swift */; };
+		E41E5E819A14C0C749F52663 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8611DE49154B10DD624DBD37 /* KeychainService.swift */; };
 		ED7B014D8335A121EE92B6ED /* PocketPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E977F77EACD033B40C14050 /* PocketPalApp.swift */; };
 		F24D4D5CC1583EA974D570B8 /* InsightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41F6FCAD5CBAACC5524168A5 /* InsightView.swift */; };
 		FC005D8F0B76F21E854A4C4B /* ReceiptRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422018B481724A374E80337B /* ReceiptRowView.swift */; };
@@ -89,7 +98,9 @@
 		68D09C2D1BC0D8E024EA7F47 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		6A82D433B15104FE26C95067 /* OCRResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRResult.swift; sourceTree = "<group>"; };
 		6AA8D13A239967ED1E971466 /* ReceiptProcessingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptProcessingState.swift; sourceTree = "<group>"; };
+		6AF97E72B7A95406BBDF23AF /* SyncLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncLog.swift; sourceTree = "<group>"; };
 		7538A81BCB7FB6C051F0118B /* ReceiptAssetPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptAssetPreview.swift; sourceTree = "<group>"; };
+		8611DE49154B10DD624DBD37 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		8A23EC30EFCBEC416FFD096C /* ReceiptDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptDetailView.swift; sourceTree = "<group>"; };
 		8A32D01A74D2D0127345504D /* AmountParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmountParser.swift; sourceTree = "<group>"; };
 		8B7C8036FE15B9F2988A4247 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
@@ -102,13 +113,16 @@
 		B3B65C0507B237A0A48F09B6 /* DocumentScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentScannerView.swift; sourceTree = "<group>"; };
 		B3EBDFFFC87C3634763B8E60 /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
 		B5B7563176ED68043B3D7163 /* PocketPal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PocketPal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B7DAC5A115885ACEEFB9613E /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		B9C084E3F1A4FB5F1E918DFE /* ImportedReceiptDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportedReceiptDocument.swift; sourceTree = "<group>"; };
 		BB690B02AD565EB613302691 /* ReceiptFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptFileStorageService.swift; sourceTree = "<group>"; };
 		D2A9F40613E78D30EB54B646 /* ReceiptEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptEnums.swift; sourceTree = "<group>"; };
 		D9F3D36F0206FD4B9E7D5082 /* ImportReceiptUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportReceiptUseCase.swift; sourceTree = "<group>"; };
 		DDDEF9A789649D907EF5353F /* Receipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Receipt.swift; sourceTree = "<group>"; };
+		DFE2A8CCB9B76BF8C61A98D8 /* ConnectionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionModels.swift; sourceTree = "<group>"; };
 		E91A19124DFD4A0DDE61B429 /* ServiceContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceContainer.swift; sourceTree = "<group>"; };
 		EBB9A8A0E3C7F77B7648C72B /* PDFPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFPreviewView.swift; sourceTree = "<group>"; };
+		ED57B7F909AAECD2232F20A5 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		EE39E3D91F5DE03EC5D640C0 /* ReceiptThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptThumbnailView.swift; sourceTree = "<group>"; };
 		EF942768942B9114A43D7549 /* PlatformImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformImage.swift; sourceTree = "<group>"; };
 		F1D8F619E58F28DCDF82866A /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
@@ -136,6 +150,7 @@
 				965224CC2EF7201A0203B421 /* ReceiptCategoryClassifier.swift */,
 				8BE5F06A637B2E7D90B29DF2 /* ReceiptExtractionService.swift */,
 				BB690B02AD565EB613302691 /* ReceiptFileStorageService.swift */,
+				C14CA5181AC6646669122D00 /* Security */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -151,6 +166,7 @@
 		21855EC1904AAAB7F145F41F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				DFE2A8CCB9B76BF8C61A98D8 /* ConnectionModels.swift */,
 				B9C084E3F1A4FB5F1E918DFE /* ImportedReceiptDocument.swift */,
 				D2A9F40613E78D30EB54B646 /* ReceiptEnums.swift */,
 				35FC5E26FF2ED7E4B816F19D /* ReceiptExtraction.swift */,
@@ -195,6 +211,7 @@
 			isa = PBXGroup;
 			children = (
 				7824E7E0ABD647A8A8105362 /* Archive */,
+				D1E62847B3168F742A2DB59E /* Dashboard */,
 				2B5B40432695212528CDDF5F /* Inbox */,
 				E75A4F2A7E061847A301327E /* Insights */,
 				2007A7AA8933C1DBB9E47A48 /* ReceiptDetail */,
@@ -281,15 +298,33 @@
 			);
 			sourceTree = "<group>";
 		};
+		C14CA5181AC6646669122D00 /* Security */ = {
+			isa = PBXGroup;
+			children = (
+				8611DE49154B10DD624DBD37 /* KeychainService.swift */,
+			);
+			path = Security;
+			sourceTree = "<group>";
+		};
 		C559DAA6D3E5B70E7FB1262C /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
+				B7DAC5A115885ACEEFB9613E /* Connection.swift */,
 				6A82D433B15104FE26C95067 /* OCRResult.swift */,
 				957A16F89C06376573AAAF4E /* PocketPalModelContainer.swift */,
 				DDDEF9A789649D907EF5353F /* Receipt.swift */,
 				91926B3C39149F1797837C08 /* ReceiptAsset.swift */,
+				6AF97E72B7A95406BBDF23AF /* SyncLog.swift */,
 			);
 			path = Persistence;
+			sourceTree = "<group>";
+		};
+		D1E62847B3168F742A2DB59E /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				ED57B7F909AAECD2232F20A5 /* DashboardView.swift */,
+			);
+			path = Dashboard;
 			sourceTree = "<group>";
 		};
 		DE4F044278CA77AE4E2D05DC /* Shared */ = {
@@ -349,7 +384,6 @@
 			buildConfigurationList = 5CD8E8BF33571AEE9ECF7A93 /* Build configuration list for PBXNativeTarget "PocketPal-macOS" */;
 			buildPhases = (
 				35E69F01D80DEE9C58CA66AF /* Sources */,
-				6BD358C398EC568D24352AE2 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -391,14 +425,6 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		6BD358C398EC568D24352AE2 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C14F51CBDFF20B5C3353C875 /* LaunchScreen.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		E48ED6CD881FD4C91F9250EE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -417,10 +443,14 @@
 				28A3A4AE7BB381939E04C6B9 /* AmountParser.swift in Sources */,
 				5CE9E1DDD9B695CCD32B0A08 /* AppEnvironment.swift in Sources */,
 				448521415F49C354B68065C1 /* ArchiveView.swift in Sources */,
+				65F2467670CF9D6B14F13780 /* Connection.swift in Sources */,
+				B261E61B2212CAD7514F08EC /* ConnectionModels.swift in Sources */,
+				2B7490D754AFF1A20CE626C6 /* DashboardView.swift in Sources */,
 				670F3D882ECBEDA464414B90 /* ImportReceiptUseCase.swift in Sources */,
 				29720E5AAE88C623ACB66A84 /* ImportedReceiptDocument.swift in Sources */,
 				29C933B141154FCF53BC07C7 /* InboxView.swift in Sources */,
 				10F29D228D277B9CE6D1AA35 /* InsightView.swift in Sources */,
+				E41E5E819A14C0C749F52663 /* KeychainService.swift in Sources */,
 				C78CBAC1123B96CFF368ED38 /* OCRPreferences.swift in Sources */,
 				308184D55745AD516FD825FB /* OCRResult.swift in Sources */,
 				5439A0E08300EBD0A806B88B /* OCRService.swift in Sources */,
@@ -446,6 +476,7 @@
 				20C10097342ABE0CF53C3697 /* RootTabView.swift in Sources */,
 				174882C1ED0222165BCFE22C /* ServiceContainer.swift in Sources */,
 				88E891B4D702D8C7A10D1DB2 /* SettingsView.swift in Sources */,
+				8FE55DA2B44EB263C64812E5 /* SyncLog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -456,11 +487,15 @@
 				2A6EB69036E352576C277FCB /* AmountParser.swift in Sources */,
 				074C67B54A877A783A6A9EF9 /* AppEnvironment.swift in Sources */,
 				A2B17B3DC19A2ACA9085F868 /* ArchiveView.swift in Sources */,
+				04E92A5FF477294F2BEB6435 /* Connection.swift in Sources */,
+				65ACF0E14C44A2928A317049 /* ConnectionModels.swift in Sources */,
+				19FF7CC2B1051A62C6D06C1D /* DashboardView.swift in Sources */,
 				5B7F591D143B4E9A92D05E25 /* DocumentScannerView.swift in Sources */,
 				B067CCDFF916D4088178C084 /* ImportReceiptUseCase.swift in Sources */,
 				A18F889F3E7BD36E88E28019 /* ImportedReceiptDocument.swift in Sources */,
 				2783990DCCCCAAF783760E97 /* InboxView.swift in Sources */,
 				F24D4D5CC1583EA974D570B8 /* InsightView.swift in Sources */,
+				BC1F087616714DD45E4CF39F /* KeychainService.swift in Sources */,
 				0D212C8953979A5163EEF404 /* OCRPreferences.swift in Sources */,
 				A4FFCC7EA0C29769C71EA10E /* OCRResult.swift in Sources */,
 				2A347425FCCBB5807A0B23F5 /* OCRService.swift in Sources */,
@@ -486,6 +521,7 @@
 				A800F8320567E8AA42447657 /* RootTabView.swift in Sources */,
 				FE7AB38037BF43E45FE1BD93 /* ServiceContainer.swift in Sources */,
 				5E87F74D00FC15C84147F3D7 /* SettingsView.swift in Sources */,
+				0AF873F684DC69A09CC0F5D4 /* SyncLog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

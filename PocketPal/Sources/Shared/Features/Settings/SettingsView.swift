@@ -41,15 +41,19 @@ struct SettingsView: View {
                             .padding(.vertical, 4)
                     }
                 }
+                #if os(iOS)
                 .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
+                #endif
             }
             .navigationTitle("Settings")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.receiptGroupedBackground, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(Color.receiptGroupedBackground, for: .tabBar)
             .toolbarBackground(.visible, for: .tabBar)
+            #endif
         }
     }
 
