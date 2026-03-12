@@ -14,6 +14,14 @@ struct ReceiptRowView: View {
                             .font(.headline)
                             .lineLimit(2)
 
+                        if let itemDescription = receipt.itemDescription?.trimmingCharacters(in: .whitespacesAndNewlines),
+                           !itemDescription.isEmpty {
+                            Text(itemDescription)
+                                .font(.subheadline)
+                                .foregroundStyle(.primary.opacity(0.75))
+                                .lineLimit(2)
+                        }
+
                         Text(receipt.transactionDate ?? receipt.importedAt, style: .date)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)

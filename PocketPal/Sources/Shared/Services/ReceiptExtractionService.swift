@@ -5,6 +5,8 @@ protocol ReceiptExtracting {
 }
 
 struct ReceiptExtractionService: ReceiptExtracting {
+    private let categoryClassifier = ReceiptCategoryClassifier()
+
     func extractFields(from rawText: String) -> ReceiptExtraction {
         let lines = rawText
             .components(separatedBy: .newlines)
@@ -12,6 +14,7 @@ struct ReceiptExtractionService: ReceiptExtracting {
             .filter { !$0.isEmpty }
 
         let merchantName = extractMerchantName(from: lines)
+        let itemDescription = extractItemDescription(from: lines, merchantName: merchantName)
         let transactionDate = extractDate(from: rawText)
         let currencyCode = extractCurrency(from: rawText)
         let totalAmount = extractAmount(
@@ -19,6 +22,7 @@ struct ReceiptExtractionService: ReceiptExtracting {
             keywords: ["grand total", "amount due", "total due", "total", "balance due"]
         ) ?? largestAmount(in: lines)
         let taxAmount = extractAmount(from: lines, keywords: ["tax", "vat", "gst"])
+        let category = categoryClassifier.category(forMerchant: merchantName, rawText: rawText)?.rawValue
         let confidence = extractionConfidence(
             merchantName: merchantName,
             transactionDate: transactionDate,
@@ -29,11 +33,12 @@ struct ReceiptExtractionService: ReceiptExtracting {
 
         return ReceiptExtraction(
             merchantName: merchantName,
+            itemDescription: itemDescription,
             transactionDate: transactionDate,
             totalAmount: totalAmount,
             currencyCode: currencyCode,
             taxAmount: taxAmount,
-            category: nil,
+            category: category,
             confidence: confidence
         )
     }
@@ -46,6 +51,32 @@ struct ReceiptExtractionService: ReceiptExtracting {
             let looksLikeMetadata = lowered.contains("receipt") || lowered.contains("invoice") || lowered.contains("tax")
             return containsLetters && !containsMostlyDigits && !looksLikeMetadata
         })
+    }
+
+    private func extractItemDescription(from lines: [String], merchantName: String?) -> String? {
+        let normalizedMerchant = merchantName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        for line in lines.dropFirst(1) {
+            let lowered = line.lowercased()
+            let containsLetters = line.rangeOfCharacter(from: .letters) != nil
+            let looksLikeMerchant = normalizedMerchant != nil && lowered == normalizedMerchant
+            let looksLikeMeta = lowered.contains("receipt")
+                || lowered.contains("invoice")
+                || lowered.contains("subtotal")
+                || lowered.contains("total")
+                || lowered.contains("tax")
+                || lowered.contains("change")
+                || lowered.contains("cash")
+                || lowered.contains("visa")
+                || lowered.contains("mastercard")
+            let mostlyDigits = line.filter(\.isNumber).count > max(3, line.count / 2)
+
+            if containsLetters && !looksLikeMerchant && !looksLikeMeta && !mostlyDigits {
+                return line
+            }
+        }
+
+        return nil
     }
 
     private func extractDate(from rawText: String) -> Date? {

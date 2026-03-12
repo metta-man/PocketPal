@@ -91,7 +91,16 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
 
     func fileURL(forRelativePath relativePath: String) -> URL {
         if relativePath.hasPrefix("/") {
-            return URL(filePath: relativePath)
+            let legacyURL = URL(filePath: relativePath)
+            if fileManager.fileExists(atPath: legacyURL.path()) {
+                return legacyURL
+            }
+
+            if let migratedRelativePath = migratedRelativePath(fromLegacyAbsolutePath: relativePath) {
+                return baseDirectory().appending(path: migratedRelativePath)
+            }
+
+            return legacyURL
         }
 
         return baseDirectory().appending(path: relativePath)
@@ -131,10 +140,32 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
     }
 
     private func relativePath(for absoluteURL: URL) -> String {
-        absoluteURL
+        let normalizedAbsoluteURL = absoluteURL
             .standardizedFileURL
             .resolvingSymlinksInPath()
-            .path()
+        let normalizedBaseURL = baseDirectory()
+            .standardizedFileURL
+            .resolvingSymlinksInPath()
+        let basePath = normalizedBaseURL.path()
+        let absolutePath = normalizedAbsoluteURL.path()
+
+        guard absolutePath.hasPrefix(basePath) else {
+            return absolutePath
+        }
+
+        let relativePath = String(absolutePath.dropFirst(basePath.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return relativePath.isEmpty ? normalizedAbsoluteURL.lastPathComponent : relativePath
+    }
+
+    private func migratedRelativePath(fromLegacyAbsolutePath absolutePath: String) -> String? {
+        let marker = "/\(storageRootName)/\(receiptsFolderName)/"
+        guard let markerRange = absolutePath.range(of: marker) else {
+            return nil
+        }
+
+        let suffix = absolutePath[markerRange.upperBound...]
+        let relativePath = suffix.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return relativePath.isEmpty ? nil : String(relativePath)
     }
 
     private func contentType(for sourceURL: URL) throws -> UTType {

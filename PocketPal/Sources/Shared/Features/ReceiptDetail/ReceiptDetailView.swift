@@ -3,8 +3,10 @@ import SwiftUI
 
 struct ReceiptDetailView: View {
     @Environment(\.modelContext) private var modelContext
+    private let categoryClassifier = ReceiptCategoryClassifier()
 
     @State private var merchantName = ""
+    @State private var itemDescription = ""
     @State private var hasTransactionDate = false
     @State private var transactionDate = Date()
     @State private var totalAmount = ""
@@ -90,6 +92,7 @@ struct ReceiptDetailView: View {
 
     private func populateState() {
         merchantName = receipt.merchantName ?? ""
+        itemDescription = receipt.itemDescription ?? ""
         hasTransactionDate = receipt.transactionDate != nil
         transactionDate = receipt.transactionDate ?? receipt.importedAt
         totalAmount = receipt.totalAmount.map(numberString) ?? ""
@@ -107,6 +110,7 @@ struct ReceiptDetailView: View {
 
             fieldStack(title: "Merchant") {
                 TextField("Merchant Name", text: $merchantName)
+                TextField("Item", text: $itemDescription)
             }
 
             fieldStack(title: "Transaction Date") {
@@ -127,6 +131,18 @@ struct ReceiptDetailView: View {
 
             fieldStack(title: "Classification") {
                 TextField("Category", text: $category)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(ReceiptCategory.allCases.filter { $0 != .uncategorized }, id: \.self) { suggestedCategory in
+                            Button(suggestedCategory.rawValue) {
+                                category = suggestedCategory.rawValue
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
                 TextField("Notes", text: $notes, axis: .vertical)
                     .lineLimit(3...6)
             }
@@ -173,11 +189,12 @@ struct ReceiptDetailView: View {
 
     private func saveChanges() {
         receipt.merchantName = merchantName.nilIfBlank
+        receipt.itemDescription = itemDescription.nilIfBlank
         receipt.transactionDate = hasTransactionDate ? transactionDate : nil
         receipt.totalAmount = AmountParser.parse(totalAmount)
         receipt.currencyCode = currencyCode.nilIfBlank?.uppercased()
         receipt.taxAmount = AmountParser.parse(taxAmount)
-        receipt.category = category.nilIfBlank
+        receipt.category = category.nilIfBlank ?? inferredCategory
         receipt.notes = notes.nilIfBlank
         receipt.reviewStatus = isReviewed ? .reviewed : .inbox
         receipt.reviewedAt = isReviewed ? (receipt.reviewedAt ?? .now) : nil
@@ -213,6 +230,18 @@ struct ReceiptDetailView: View {
 
     private func statusChip(title: String, tint: Color, systemImage: String) -> some View {
         ReceiptStatusPill(title: title, tint: tint, systemImage: systemImage)
+    }
+
+    private var inferredCategory: String? {
+        categoryClassifier
+            .category(forMerchant: merchantName.nilIfBlank, rawText: [
+                merchantName.nilIfBlank,
+                notes.nilIfBlank,
+                receipt.ocrResult?.rawText
+            ]
+            .compactMap { $0 }
+            .joined(separator: "\n"))?
+            .rawValue
     }
 
     private var statusTint: Color {

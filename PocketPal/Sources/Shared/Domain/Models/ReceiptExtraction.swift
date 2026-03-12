@@ -7,6 +7,7 @@ struct OCRPayload: Sendable {
 
 struct ReceiptExtraction: Sendable {
     let merchantName: String?
+    let itemDescription: String?
     let transactionDate: Date?
     let totalAmount: Double?
     let currencyCode: String?

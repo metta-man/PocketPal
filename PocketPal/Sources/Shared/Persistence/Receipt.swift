@@ -12,6 +12,7 @@ final class Receipt {
     var processingStateRawValue: String
     var processingErrorMessage: String?
     var merchantName: String?
+    var itemDescription: String?
     var transactionDate: Date?
     var totalAmount: Double?
     var currencyCode: String?
@@ -32,6 +33,7 @@ final class Receipt {
         importSource: ReceiptImportSource,
         processingState: ReceiptProcessingState = .queued,
         merchantName: String? = nil,
+        itemDescription: String? = nil,
         transactionDate: Date? = nil,
         totalAmount: Double? = nil,
         currencyCode: String? = nil,
@@ -50,6 +52,7 @@ final class Receipt {
         self.processingStateRawValue = processingState.rawValue
         self.processingErrorMessage = nil
         self.merchantName = merchantName
+        self.itemDescription = itemDescription
         self.transactionDate = transactionDate
         self.totalAmount = totalAmount
         self.currencyCode = currencyCode
@@ -100,6 +103,9 @@ final class Receipt {
         if merchantName.isBlank {
             merchantName = extraction.merchantName
         }
+        if itemDescription.isBlank {
+            itemDescription = extraction.itemDescription
+        }
         transactionDate = transactionDate ?? extraction.transactionDate
         totalAmount = totalAmount ?? extraction.totalAmount
         currencyCode = currencyCode ?? extraction.currencyCode
@@ -111,6 +117,7 @@ final class Receipt {
     func rebuildSearchText() {
         searchText = [
             merchantName,
+            itemDescription,
             category,
             notes,
             ocrResult?.rawText

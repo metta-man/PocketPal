@@ -10,6 +10,7 @@ enum PreviewSampleData {
         let reviewedReceipt = Receipt(
             importSource: .files,
             merchantName: "Cafe North",
+            itemDescription: "Chicken sandwich combo",
             transactionDate: .now.addingTimeInterval(-86_400),
             totalAmount: 18.5,
             currencyCode: "USD",
@@ -25,6 +26,7 @@ enum PreviewSampleData {
         let inboxReceipt = Receipt(
             importSource: .photos,
             merchantName: "Stationery World",
+            itemDescription: "A4 printer paper",
             transactionDate: .now,
             totalAmount: 42.0,
             currencyCode: "HKD",
@@ -37,6 +39,7 @@ enum PreviewSampleData {
         let travelReceipt = Receipt(
             importSource: .files,
             merchantName: "Metro Transit",
+            itemDescription: "Airport express ticket",
             transactionDate: .now.addingTimeInterval(-172_800),
             totalAmount: 24.0,
             currencyCode: "HKD",
@@ -50,6 +53,7 @@ enum PreviewSampleData {
         let groceriesReceipt = Receipt(
             importSource: .files,
             merchantName: "Fresh Market",
+            itemDescription: "Vegetables and fruit",
             transactionDate: .now.addingTimeInterval(-604_800),
             totalAmount: 56.4,
             currencyCode: "HKD",
