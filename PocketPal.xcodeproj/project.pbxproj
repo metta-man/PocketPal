@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -73,10 +73,10 @@
 /* Begin PBXFileReference section */
 		1E977F77EACD033B40C14050 /* PocketPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketPalApp.swift; sourceTree = "<group>"; };
 		35FC5E26FF2ED7E4B816F19D /* ReceiptExtraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptExtraction.swift; sourceTree = "<group>"; };
-		367C8D5A7961CA929F9EC713 /* PocketPal-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PocketPal-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		367C8D5A7961CA929F9EC713 /* PocketPal-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "PocketPal-macOS.app"; path = PocketPal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		41F6FCAD5CBAACC5524168A5 /* InsightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightView.swift; sourceTree = "<group>"; };
 		422018B481724A374E80337B /* ReceiptRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptRowView.swift; sourceTree = "<group>"; };
-		59AA6024DDA69391A08CA0E0 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
+		59AA6024DDA69391A08CA0E0 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
 		5A05481058DB08EF57C6DDD5 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6226D0C366BB9370B2AC25D6 /* ReceiptStatusPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptStatusPill.swift; sourceTree = "<group>"; };
 		68D09C2D1BC0D8E024EA7F47 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
@@ -92,7 +92,7 @@
 		96121A2F2EE091D0C9914EFA /* PreviewSampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSampleData.swift; sourceTree = "<group>"; };
 		B3B65C0507B237A0A48F09B6 /* DocumentScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentScannerView.swift; sourceTree = "<group>"; };
 		B3EBDFFFC87C3634763B8E60 /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
-		B5B7563176ED68043B3D7163 /* PocketPal-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "PocketPal-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B5B7563176ED68043B3D7163 /* PocketPal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PocketPal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9C084E3F1A4FB5F1E918DFE /* ImportedReceiptDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportedReceiptDocument.swift; sourceTree = "<group>"; };
 		BB690B02AD565EB613302691 /* ReceiptFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptFileStorageService.swift; sourceTree = "<group>"; };
 		D2A9F40613E78D30EB54B646 /* ReceiptEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptEnums.swift; sourceTree = "<group>"; };
@@ -297,17 +297,10 @@
 		F62136373C75D363971B84CA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B5B7563176ED68043B3D7163 /* PocketPal-iOS.app */,
+				B5B7563176ED68043B3D7163 /* PocketPal.app */,
 				367C8D5A7961CA929F9EC713 /* PocketPal-macOS.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		"TEMP_2283725A-EDC7-4B9D-9A57-6A03C297CE98" /* Platform */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Platform;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -328,7 +321,7 @@
 			packageProductDependencies = (
 			);
 			productName = "PocketPal-iOS";
-			productReference = B5B7563176ED68043B3D7163 /* PocketPal-iOS.app */;
+			productReference = B5B7563176ED68043B3D7163 /* PocketPal.app */;
 			productType = "com.apple.product-type.application";
 		};
 		920A0EA1DAE58BAB91DFC704 /* PocketPal-macOS */ = {
@@ -368,7 +361,6 @@
 			);
 			mainGroup = B57FA59DA9DCB9CD072E81F8;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -602,6 +594,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = VU5N8NSBSN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = PocketPal;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
@@ -610,11 +603,7 @@
 				INFOPLIST_KEY_UIDesignRequiresCompatibility = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = (
-					UIInterfaceOrientationPortrait,
-					UIInterfaceOrientationLandscapeLeft,
-					UIInterfaceOrientationLandscapeRight,
-				);
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -670,6 +659,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = VU5N8NSBSN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = PocketPal;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
@@ -678,11 +668,7 @@
 				INFOPLIST_KEY_UIDesignRequiresCompatibility = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = (
-					UIInterfaceOrientationPortrait,
-					UIInterfaceOrientationLandscapeLeft,
-					UIInterfaceOrientationLandscapeRight,
-				);
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

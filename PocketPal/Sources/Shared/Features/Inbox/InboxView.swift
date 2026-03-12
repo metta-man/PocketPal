@@ -323,7 +323,9 @@ struct InboxView: View {
                 throw CocoaError(.fileReadCorruptFile)
             }
 
-            let contentType = item.supportedContentTypes.first(where: { $0.conforms(to: .image) }) ?? .jpeg
+            let contentType = item.supportedContentTypes.first(where: {
+                $0.conforms(to: .image) && $0 != .image
+            }) ?? item.supportedContentTypes.first(where: { $0.conforms(to: .image) }) ?? .jpeg
             let filename = "photo-\(UUID().uuidString).\(contentType.preferredFilenameExtension ?? "jpg")"
             let document = ImportedReceiptDocument(data: data, suggestedFilename: filename, contentType: contentType)
 

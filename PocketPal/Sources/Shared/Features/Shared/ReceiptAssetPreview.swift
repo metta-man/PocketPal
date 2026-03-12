@@ -5,6 +5,7 @@ struct ReceiptAssetPreview: View {
 
     @Environment(\.serviceContainer) private var services
     @State private var image: PlatformImage?
+    @State private var didAttemptImageLoad = false
 
     var body: some View {
         Group {
@@ -31,11 +32,15 @@ struct ReceiptAssetPreview: View {
                 .resizable()
                 .scaledToFit()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if didAttemptImageLoad {
+            ContentUnavailableView("Image Unavailable", systemImage: "photo.badge.exclamationmark")
         } else {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .task(id: asset.id) {
+                    didAttemptImageLoad = false
                     image = loadPlatformImage(from: services.fileStorageService.fileURL(forRelativePath: asset.storageRelativePath))
+                    didAttemptImageLoad = true
                 }
         }
     }

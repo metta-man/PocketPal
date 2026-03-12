@@ -70,9 +70,7 @@ final class VisionOCRService: OCRServicing {
     }
 
     private func makeOCRImage(from url: URL) throws -> CGImage {
-        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else {
-            throw CocoaError(.fileReadCorruptFile)
-        }
+        let source = try imageSource(from: url)
 
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
@@ -89,5 +87,18 @@ final class VisionOCRService: OCRServicing {
         }
 
         return fullImage
+    }
+
+    private func imageSource(from url: URL) throws -> CGImageSource {
+        if let source = CGImageSourceCreateWithURL(url as CFURL, nil) {
+            return source
+        }
+
+        let data = try Data(contentsOf: url)
+        if let source = CGImageSourceCreateWithData(data as CFData, nil) {
+            return source
+        }
+
+        throw CocoaError(.fileReadCorruptFile)
     }
 }

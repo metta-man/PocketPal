@@ -11,7 +11,15 @@ extension Image {
 }
 
 func loadPlatformImage(from url: URL) -> PlatformImage? {
-    PlatformImage(contentsOfFile: url.path())
+    if let image = PlatformImage(contentsOfFile: url.path()) {
+        return image
+    }
+
+    guard let data = try? Data(contentsOf: url) else {
+        return nil
+    }
+
+    return PlatformImage(data: data)
 }
 #elseif canImport(AppKit)
 import AppKit
@@ -24,6 +32,14 @@ extension Image {
 }
 
 func loadPlatformImage(from url: URL) -> PlatformImage? {
-    PlatformImage(contentsOf: url)
+    if let image = PlatformImage(contentsOf: url) {
+        return image
+    }
+
+    guard let data = try? Data(contentsOf: url) else {
+        return nil
+    }
+
+    return PlatformImage(data: data)
 }
 #endif
