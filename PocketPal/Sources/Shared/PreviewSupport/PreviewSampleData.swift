@@ -34,8 +34,38 @@ enum PreviewSampleData {
         )
         inboxReceipt.searchText = "stationery world office supplies"
 
+        let travelReceipt = Receipt(
+            importSource: .files,
+            merchantName: "Metro Transit",
+            transactionDate: .now.addingTimeInterval(-172_800),
+            totalAmount: 24.0,
+            currencyCode: "HKD",
+            category: "Travel",
+            extractionConfidence: 0.9
+        )
+        travelReceipt.reviewStatus = .reviewed
+        travelReceipt.reviewedAt = .now
+        travelReceipt.searchText = "metro transit octopus travel"
+
+        let groceriesReceipt = Receipt(
+            importSource: .files,
+            merchantName: "Fresh Market",
+            transactionDate: .now.addingTimeInterval(-604_800),
+            totalAmount: 56.4,
+            currencyCode: "HKD",
+            taxAmount: nil,
+            category: "Groceries",
+            notes: "Weekly restock",
+            extractionConfidence: 0.84
+        )
+        groceriesReceipt.reviewStatus = .reviewed
+        groceriesReceipt.reviewedAt = .now
+        groceriesReceipt.searchText = "fresh market groceries vegetables"
+
         context.insert(reviewedReceipt)
         context.insert(inboxReceipt)
+        context.insert(travelReceipt)
+        context.insert(groceriesReceipt)
 
         return container
     }

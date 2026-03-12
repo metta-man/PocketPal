@@ -15,10 +15,15 @@ struct RootTabView: View {
                         Label("Inbox", systemImage: "tray.full")
                     }
 
+                InsightView()
+                    .tabItem {
+                        Label("Insights", systemImage: "chart.bar.xaxis")
+                    }
+
                 ArchiveView()
                     .tabItem {
                         Label("Archive", systemImage: "archivebox")
-                }
+                    }
             }
         }
         #if os(iOS)

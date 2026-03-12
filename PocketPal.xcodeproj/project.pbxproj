@@ -15,6 +15,7 @@
 		075B9F12213D6336E01F9BE1 /* ReceiptExtractionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE5F06A637B2E7D90B29DF2 /* ReceiptExtractionService.swift */; };
 		0FE9CA32000227D68E5F7AE7 /* PreviewSampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96121A2F2EE091D0C9914EFA /* PreviewSampleData.swift */; };
 		10C1925F0BA3817FAAA9ABE7 /* PlatformColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5C9E9DEF4E5DA43045A80BE /* PlatformColors.swift */; };
+		10F29D228D277B9CE6D1AA35 /* InsightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41F6FCAD5CBAACC5524168A5 /* InsightView.swift */; };
 		1545136FF57E427CC0D9DE78 /* ReceiptProcessingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA8D13A239967ED1E971466 /* ReceiptProcessingState.swift */; };
 		174882C1ED0222165BCFE22C /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91A19124DFD4A0DDE61B429 /* ServiceContainer.swift */; };
 		20C10097342ABE0CF53C3697 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D8F619E58F28DCDF82866A /* RootTabView.swift */; };
@@ -63,6 +64,7 @@
 		DB906339CDCCD2E972C20E1F /* PreviewSampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96121A2F2EE091D0C9914EFA /* PreviewSampleData.swift */; };
 		DC2A51776BBD3EE109F930C1 /* ReceiptExtractionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE5F06A637B2E7D90B29DF2 /* ReceiptExtractionService.swift */; };
 		ED7B014D8335A121EE92B6ED /* PocketPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E977F77EACD033B40C14050 /* PocketPalApp.swift */; };
+		F24D4D5CC1583EA974D570B8 /* InsightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41F6FCAD5CBAACC5524168A5 /* InsightView.swift */; };
 		FC005D8F0B76F21E854A4C4B /* ReceiptRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422018B481724A374E80337B /* ReceiptRowView.swift */; };
 		FDFEB041DBD17C0666636CB1 /* ReceiptThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE39E3D91F5DE03EC5D640C0 /* ReceiptThumbnailView.swift */; };
 		FE7AB38037BF43E45FE1BD93 /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91A19124DFD4A0DDE61B429 /* ServiceContainer.swift */; };
@@ -72,6 +74,7 @@
 		1E977F77EACD033B40C14050 /* PocketPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketPalApp.swift; sourceTree = "<group>"; };
 		35FC5E26FF2ED7E4B816F19D /* ReceiptExtraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptExtraction.swift; sourceTree = "<group>"; };
 		367C8D5A7961CA929F9EC713 /* PocketPal-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PocketPal-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		41F6FCAD5CBAACC5524168A5 /* InsightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightView.swift; sourceTree = "<group>"; };
 		422018B481724A374E80337B /* ReceiptRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptRowView.swift; sourceTree = "<group>"; };
 		59AA6024DDA69391A08CA0E0 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
 		5A05481058DB08EF57C6DDD5 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -182,6 +185,7 @@
 			children = (
 				7824E7E0ABD647A8A8105362 /* Archive */,
 				2B5B40432695212528CDDF5F /* Inbox */,
+				E75A4F2A7E061847A301327E /* Insights */,
 				2007A7AA8933C1DBB9E47A48 /* ReceiptDetail */,
 				DE4F044278CA77AE4E2D05DC /* Shared */,
 			);
@@ -282,6 +286,14 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
+		E75A4F2A7E061847A301327E /* Insights */ = {
+			isa = PBXGroup;
+			children = (
+				41F6FCAD5CBAACC5524168A5 /* InsightView.swift */,
+			);
+			path = Insights;
+			sourceTree = "<group>";
+		};
 		F62136373C75D363971B84CA /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -291,7 +303,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		"TEMP_DB679AC7-2204-43E8-985C-D8222319CAA3" /* Platform */ = {
+		"TEMP_2283725A-EDC7-4B9D-9A57-6A03C297CE98" /* Platform */ = {
 			isa = PBXGroup;
 			children = (
 			);
@@ -396,6 +408,7 @@
 				670F3D882ECBEDA464414B90 /* ImportReceiptUseCase.swift in Sources */,
 				29720E5AAE88C623ACB66A84 /* ImportedReceiptDocument.swift in Sources */,
 				29C933B141154FCF53BC07C7 /* InboxView.swift in Sources */,
+				10F29D228D277B9CE6D1AA35 /* InsightView.swift in Sources */,
 				308184D55745AD516FD825FB /* OCRResult.swift in Sources */,
 				5439A0E08300EBD0A806B88B /* OCRService.swift in Sources */,
 				79DAD160E4475F1A87C8D71C /* PDFPreviewView.swift in Sources */,
@@ -432,6 +445,7 @@
 				B067CCDFF916D4088178C084 /* ImportReceiptUseCase.swift in Sources */,
 				A18F889F3E7BD36E88E28019 /* ImportedReceiptDocument.swift in Sources */,
 				2783990DCCCCAAF783760E97 /* InboxView.swift in Sources */,
+				F24D4D5CC1583EA974D570B8 /* InsightView.swift in Sources */,
 				A4FFCC7EA0C29769C71EA10E /* OCRResult.swift in Sources */,
 				2A347425FCCBB5807A0B23F5 /* OCRService.swift in Sources */,
 				2A410825B6DAD360595BFBE5 /* PDFPreviewView.swift in Sources */,
