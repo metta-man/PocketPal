@@ -21,39 +21,49 @@ struct InboxView: View {
     @State private var importErrorMessage: String?
     #if os(iOS)
     @State private var selectedPhoto: PhotosPickerItem?
+    @State private var photoSelectionTrigger = UUID()
     @State private var isShowingScanner = false
     #endif
 
     var body: some View {
         NavigationStack {
-            Group {
+            List {
+                Section {
+                    inboxHero
+                        .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16))
+                        .listRowBackground(Color.clear)
+                }
+
                 if receipts.isEmpty {
-                    ContentUnavailableView(
-                        "No Receipts Yet",
-                        systemImage: "tray",
-                        description: Text("Import a receipt photo or PDF to start OCR and review.")
-                    )
+                    Section {
+                        emptyStateCard
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
+                            .listRowBackground(Color.clear)
+                    }
                 } else {
-                    List(receipts) { receipt in
-                        NavigationLink {
-                            ReceiptDetailView(receipt: receipt)
-                        } label: {
-                            ReceiptRowView(receipt: receipt)
+                    Section {
+                        ForEach(receipts) { receipt in
+                            NavigationLink {
+                                ReceiptDetailView(receipt: receipt)
+                            } label: {
+                                ReceiptRowView(receipt: receipt)
+                            }
+                            .buttonStyle(.plain)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                            .listRowBackground(Color.clear)
                         }
                     }
                 }
             }
             .navigationTitle("Inbox")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    importMenu
-                }
-            }
+            .scrollContentBackground(.hidden)
+            .background(Color.receiptGroupedBackground)
             .overlay {
                 if isImporting {
-                    ProgressView("Importing Receipt...")
-                        .padding()
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    ProgressView("Saving Receipt...")
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 14)
+                        .background(.ultraThinMaterial, in: Capsule())
                 }
             }
         }
@@ -89,7 +99,7 @@ struct InboxView: View {
             }
             .ignoresSafeArea()
         }
-        .task(id: selectedPhoto?.itemIdentifier) {
+        .task(id: photoSelectionTrigger) {
             guard let selectedPhoto else { return }
             await importSelectedPhoto(selectedPhoto)
             self.selectedPhoto = nil
@@ -107,26 +117,148 @@ struct InboxView: View {
         #endif
     }
 
-    @ViewBuilder
-    private var importMenu: some View {
-        Menu {
-            Button("Import from Files") {
+    private var processingCount: Int {
+        receipts.filter { $0.processingState.isActive }.count
+    }
+
+    private var readyCount: Int {
+        receipts.filter { $0.processingState == .ready && $0.reviewStatus != .reviewed }.count
+    }
+
+    #if os(iOS)
+    private var photoSelectionBinding: Binding<PhotosPickerItem?> {
+        Binding(
+            get: { selectedPhoto },
+            set: { newValue in
+                selectedPhoto = newValue
+                if newValue != nil {
+                    photoSelectionTrigger = UUID()
+                }
+            }
+        )
+    }
+    #endif
+
+    private var inboxHero: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Capture receipts without losing the original file.")
+                    .font(.title2.weight(.bold))
+                Text("Every import is copied into app storage, queued for OCR, and kept ready for later verification or export.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack(spacing: 10) {
+                summaryChip(title: "\(receipts.count)", subtitle: "Inbox")
+                summaryChip(title: "\(readyCount)", subtitle: "Ready")
+                summaryChip(title: "\(processingCount)", subtitle: "Processing")
+            }
+
+            importActions
+        }
+        .padding(20)
+        .background(
+            LinearGradient(
+                colors: [Color.orange.opacity(0.16), Color.yellow.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+        )
+    }
+
+    private func summaryChip(title: String, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.headline.weight(.semibold))
+            Text(subtitle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(.white.opacity(0.65), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var emptyStateCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Nothing waiting for review")
+                .font(.headline)
+            Text("Import a photo, a scanned document, or a PDF receipt. OCR will run in the background for image receipts.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color.receiptCardBackground)
+        )
+    }
+
+    private var importActions: some View {
+        HStack(spacing: 12) {
+            actionButton(
+                title: "Files",
+                subtitle: "PDF, JPG, PNG, HEIC",
+                systemImage: "folder"
+            ) {
                 isShowingFileImporter = true
             }
 
             #if os(iOS)
-            PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                Label("Import from Photos", systemImage: "photo.on.rectangle")
+            PhotosPicker(selection: photoSelectionBinding, matching: .images, preferredItemEncoding: .current) {
+                actionLabel(
+                    title: "Photos",
+                    subtitle: "Import from library",
+                    systemImage: "photo.on.rectangle"
+                )
             }
+            .buttonStyle(.plain)
 
-            Button("Scan Receipt") {
+            actionButton(
+                title: "Scan",
+                subtitle: "Use the camera",
+                systemImage: "doc.viewfinder"
+            ) {
                 isShowingScanner = true
             }
             #endif
-        } label: {
-            Label("Import", systemImage: "plus")
         }
         .disabled(isImporting)
+    }
+
+    private func actionButton(
+        title: String,
+        subtitle: String,
+        systemImage: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            actionLabel(title: title, subtitle: subtitle, systemImage: systemImage)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func actionLabel(title: String, subtitle: String, systemImage: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(.orange)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 94, alignment: .leading)
+        .padding(14)
+        .background(.white.opacity(0.78), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private func handleFileImport(_ result: Result<[URL], Error>) {

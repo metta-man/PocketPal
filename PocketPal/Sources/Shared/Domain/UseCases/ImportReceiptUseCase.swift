@@ -46,29 +46,77 @@ final class ImportReceiptUseCase {
 
         asset.receipt = receipt
         receipt.asset = asset
+        receipt.processingState = storedFile.kind == .image ? .queued : .ready
+        receipt.processingErrorMessage = nil
         receipt.touch()
         receipt.rebuildSearchText()
 
         modelContext.insert(asset)
         try modelContext.save()
 
+        if storedFile.kind == .image {
+            let receiptID = receipt.id
+            Task { @MainActor [weak self] in
+                await self?.processOCRIfNeeded(for: receiptID, modelContext: modelContext)
+            }
+        }
+
+        return receipt
+    }
+
+    @MainActor
+    private func processOCRIfNeeded(for receiptID: UUID, modelContext: ModelContext) async {
+        var descriptor = FetchDescriptor<Receipt>(
+            predicate: #Predicate { receipt in
+                receipt.id == receiptID
+            }
+        )
+        descriptor.fetchLimit = 1
+
+        guard let receipt = try? modelContext.fetch(descriptor).first,
+              let asset = receipt.asset,
+              asset.kind == .image,
+              receipt.processingState == .queued || receipt.processingState == .failed else {
+            return
+        }
+
+        receipt.processingState = .runningOCR
+        receipt.processingErrorMessage = nil
+        receipt.touch()
+        try? modelContext.save()
+
         do {
             let ocrPayload = try await ocrService.recognizeText(for: asset)
             let extraction = extractionService.extractFields(from: ocrPayload.rawText)
 
-            let ocrResult = OCRResult(rawText: ocrPayload.rawText, confidence: ocrPayload.confidence)
-            ocrResult.receipt = receipt
-            receipt.ocrResult = ocrResult
+            let ocrResult: OCRResult
+            if let existingOCRResult = receipt.ocrResult {
+                ocrResult = existingOCRResult
+                ocrResult.rawText = ocrPayload.rawText
+                ocrResult.confidence = ocrPayload.confidence
+            } else {
+                ocrResult = OCRResult(rawText: ocrPayload.rawText, confidence: ocrPayload.confidence)
+                ocrResult.receipt = receipt
+                receipt.ocrResult = ocrResult
+                modelContext.insert(ocrResult)
+            }
+
             receipt.apply(extraction: extraction)
+            receipt.processingState = .ready
+            receipt.processingErrorMessage = nil
             receipt.touch()
             receipt.rebuildSearchText()
-
-            modelContext.insert(ocrResult)
-            try modelContext.save()
+            try? modelContext.save()
         } catch OCRServiceError.unsupportedAssetType {
-            try modelContext.save()
+            receipt.processingState = .ready
+            receipt.processingErrorMessage = nil
+            receipt.touch()
+            try? modelContext.save()
+        } catch {
+            receipt.processingState = .failed
+            receipt.processingErrorMessage = error.localizedDescription
+            receipt.touch()
+            try? modelContext.save()
         }
-
-        return receipt
     }
 }

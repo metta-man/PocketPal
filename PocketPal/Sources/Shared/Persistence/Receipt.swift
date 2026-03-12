@@ -9,6 +9,8 @@ final class Receipt {
     var reviewedAt: Date?
     var reviewStatusRawValue: String
     var importSourceRawValue: String
+    var processingStateRawValue: String
+    var processingErrorMessage: String?
     var merchantName: String?
     var transactionDate: Date?
     var totalAmount: Double?
@@ -28,6 +30,7 @@ final class Receipt {
         updatedAt: Date = .now,
         reviewStatus: ReceiptReviewStatus = .inbox,
         importSource: ReceiptImportSource,
+        processingState: ReceiptProcessingState = .queued,
         merchantName: String? = nil,
         transactionDate: Date? = nil,
         totalAmount: Double? = nil,
@@ -44,6 +47,8 @@ final class Receipt {
         self.reviewedAt = nil
         self.reviewStatusRawValue = reviewStatus.rawValue
         self.importSourceRawValue = importSource.rawValue
+        self.processingStateRawValue = processingState.rawValue
+        self.processingErrorMessage = nil
         self.merchantName = merchantName
         self.transactionDate = transactionDate
         self.totalAmount = totalAmount
@@ -63,6 +68,24 @@ final class Receipt {
     var importSource: ReceiptImportSource {
         get { ReceiptImportSource(rawValue: importSourceRawValue) ?? .files }
         set { importSourceRawValue = newValue.rawValue }
+    }
+
+    var processingState: ReceiptProcessingState {
+        get { ReceiptProcessingState(rawValue: processingStateRawValue) ?? .queued }
+        set { processingStateRawValue = newValue.rawValue }
+    }
+
+    var processingStatusLabel: String {
+        switch processingState {
+        case .queued:
+            return "Queued"
+        case .runningOCR:
+            return "Reading Text"
+        case .ready:
+            return reviewStatus == .reviewed ? "Reviewed" : "Ready"
+        case .failed:
+            return "Needs Retry"
+        }
     }
 
     var displayMerchantName: String {

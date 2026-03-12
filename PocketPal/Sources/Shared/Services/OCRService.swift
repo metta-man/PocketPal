@@ -1,4 +1,5 @@
 import Foundation
+import ImageIO
 @preconcurrency import Vision
 
 enum OCRServiceError: LocalizedError {
@@ -36,7 +37,9 @@ final class VisionOCRService: OCRServicing {
     }
 
     private func recognizeText(at url: URL) async throws -> OCRPayload {
-        try await withCheckedThrowingContinuation { continuation in
+        let cgImage = try makeOCRImage(from: url)
+
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<OCRPayload, Error>) in
             let request = VNRecognizeTextRequest { request, error in
                 if let error {
                     continuation.resume(throwing: error)
@@ -57,12 +60,34 @@ final class VisionOCRService: OCRServicing {
 
             DispatchQueue.global(qos: .userInitiated).async {
                 do {
-                    let handler = VNImageRequestHandler(url: url)
+                    let handler = VNImageRequestHandler(cgImage: cgImage)
                     try handler.perform([request])
                 } catch {
                     continuation.resume(throwing: error)
                 }
             }
         }
+    }
+
+    private func makeOCRImage(from url: URL) throws -> CGImage {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: 2_400
+        ]
+
+        if let thumbnail = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) {
+            return thumbnail
+        }
+
+        guard let fullImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+
+        return fullImage
     }
 }
