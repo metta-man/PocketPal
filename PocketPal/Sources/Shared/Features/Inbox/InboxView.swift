@@ -20,7 +20,7 @@ struct InboxView: View {
     @State private var isImporting = false
     @State private var importErrorMessage: String?
     #if os(iOS)
-    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var photoSelectionTrigger = UUID()
     @State private var isShowingScanner = false
     #endif
@@ -70,7 +70,7 @@ struct InboxView: View {
             .toolbarBackground(.visible, for: .tabBar)
             .overlay {
                 if isImporting {
-                    ProgressView("Saving Receipt...")
+                    ProgressView("Saving Receipts...")
                         .padding(.horizontal, 18)
                         .padding(.vertical, 14)
                         .background(.ultraThinMaterial, in: Capsule())
@@ -101,7 +101,7 @@ struct InboxView: View {
                 switch result {
                 case .success(let document):
                     Task {
-                        await importDocument(.inMemory(document), source: .scanner)
+                        await importDocuments([.inMemory(document)], source: .scanner)
                     }
                 case .failure(let error):
                     importErrorMessage = error.localizedDescription
@@ -110,17 +110,15 @@ struct InboxView: View {
             .ignoresSafeArea()
         }
         .task(id: photoSelectionTrigger) {
-            guard let selectedPhoto else { return }
-            await importSelectedPhoto(selectedPhoto)
-            self.selectedPhoto = nil
+            guard !selectedPhotos.isEmpty else { return }
+            await importSelectedPhotos(selectedPhotos)
+            self.selectedPhotos = []
         }
         #endif
         #if os(macOS)
         .dropDestination(for: URL.self) { items, _ in
             Task {
-                for item in items {
-                    await importDocument(.file(item), source: .dragDrop)
-                }
+                await importDocuments(items.map(ReceiptImportInput.file), source: .dragDrop)
             }
             return true
         }
@@ -136,12 +134,12 @@ struct InboxView: View {
     }
 
     #if os(iOS)
-    private var photoSelectionBinding: Binding<PhotosPickerItem?> {
+    private var photoSelectionBinding: Binding<[PhotosPickerItem]> {
         Binding(
-            get: { selectedPhoto },
+            get: { selectedPhotos },
             set: { newValue in
-                selectedPhoto = newValue
-                if newValue != nil {
+                selectedPhotos = newValue
+                if !newValue.isEmpty {
                     photoSelectionTrigger = UUID()
                 }
             }
@@ -222,10 +220,15 @@ struct InboxView: View {
             }
 
             #if os(iOS)
-            PhotosPicker(selection: photoSelectionBinding, matching: .images, preferredItemEncoding: .current) {
+            PhotosPicker(
+                selection: photoSelectionBinding,
+                maxSelectionCount: nil,
+                matching: .images,
+                preferredItemEncoding: .current
+            ) {
                 actionLabel(
                     title: "Photos",
-                    subtitle: "Import from library",
+                    subtitle: "Import one or more",
                     systemImage: "photo.on.rectangle"
                 )
             }
@@ -289,53 +292,72 @@ struct InboxView: View {
         switch result {
         case .success(let urls):
             Task {
-                for url in urls {
-                    await importDocument(.file(url), source: .files)
-                }
+                await importDocuments(urls.map(ReceiptImportInput.file), source: .files)
             }
         case .failure(let error):
             importErrorMessage = error.localizedDescription
         }
     }
 
-    private func importDocument(_ input: ReceiptImportInput, source: ReceiptImportSource) async {
+    private func importDocuments(_ inputs: [ReceiptImportInput], source: ReceiptImportSource) async {
+        guard !inputs.isEmpty else { return }
+
         isImporting = true
         defer { isImporting = false }
 
-        do {
-            _ = try await services.importReceiptUseCase.execute(
-                input: input,
-                source: source,
-                modelContext: modelContext
-            )
-        } catch {
-            importErrorMessage = error.localizedDescription
+        var failures: [String] = []
+
+        for input in inputs {
+            do {
+                _ = try await services.importReceiptUseCase.execute(
+                    input: input,
+                    source: source,
+                    modelContext: modelContext
+                )
+            } catch {
+                failures.append(error.localizedDescription)
+            }
+        }
+
+        if let firstFailure = failures.first {
+            if failures.count == 1 {
+                importErrorMessage = firstFailure
+            } else {
+                importErrorMessage = "\(failures.count) receipts could not be imported. First error: \(firstFailure)"
+            }
         }
     }
 
     #if os(iOS)
-    private func importSelectedPhoto(_ item: PhotosPickerItem) async {
-        isImporting = true
-        defer { isImporting = false }
+    private func importSelectedPhotos(_ items: [PhotosPickerItem]) async {
+        var documents: [ReceiptImportInput] = []
+        var failures: [String] = []
 
-        do {
-            guard let data = try await item.loadTransferable(type: Data.self) else {
-                throw CocoaError(.fileReadCorruptFile)
+        for item in items {
+            do {
+                guard let data = try await item.loadTransferable(type: Data.self) else {
+                    throw CocoaError(.fileReadCorruptFile)
+                }
+
+                let contentType = item.supportedContentTypes.first(where: {
+                    $0.conforms(to: .image) && $0 != .image
+                }) ?? item.supportedContentTypes.first(where: { $0.conforms(to: .image) }) ?? .jpeg
+                let filename = "photo-\(UUID().uuidString).\(contentType.preferredFilenameExtension ?? "jpg")"
+                let document = ImportedReceiptDocument(data: data, suggestedFilename: filename, contentType: contentType)
+                documents.append(.inMemory(document))
+            } catch {
+                failures.append(error.localizedDescription)
             }
+        }
 
-            let contentType = item.supportedContentTypes.first(where: {
-                $0.conforms(to: .image) && $0 != .image
-            }) ?? item.supportedContentTypes.first(where: { $0.conforms(to: .image) }) ?? .jpeg
-            let filename = "photo-\(UUID().uuidString).\(contentType.preferredFilenameExtension ?? "jpg")"
-            let document = ImportedReceiptDocument(data: data, suggestedFilename: filename, contentType: contentType)
+        await importDocuments(documents, source: .photos)
 
-            _ = try await services.importReceiptUseCase.execute(
-                input: .inMemory(document),
-                source: .photos,
-                modelContext: modelContext
-            )
-        } catch {
-            importErrorMessage = error.localizedDescription
+        if importErrorMessage == nil, let firstFailure = failures.first {
+            if failures.count == 1 {
+                importErrorMessage = firstFailure
+            } else {
+                importErrorMessage = "\(failures.count) photos could not be loaded. First error: \(firstFailure)"
+            }
         }
     }
     #endif
