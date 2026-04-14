@@ -2,7 +2,6 @@ import SwiftData
 import SwiftUI
 
 struct DashboardView: View {
-    @Environment(\.modelContext) private var modelContext
     @Query(sort: [SortDescriptor(\Receipt.importedAt, order: .reverse)])
     private var receipts: [Receipt]
 
@@ -90,10 +89,14 @@ struct DashboardView: View {
         receipts.compactMap { $0.totalAmount }.reduce(0, +)
     }
 
-    private var dominantCurrency: String {
-        let currencies = receipts.compactMap { $0.currencyCode }
+    private var totalExpensesHKD: Double {
+        receipts.compactMap(\.amountInHKD).reduce(0, +)
+    }
+
+    private var dominantCurrency: Currency {
+        let currencies = receipts.map { $0.resolvedCurrency.rawValue }
         let grouped = Dictionary(grouping: currencies, by: { $0 })
-        return grouped.max { $0.value.count < $1.value.count }?.key ?? "USD"
+        return Currency(rawValue: grouped.max { $0.value.count < $1.value.count }?.key ?? Currency.hkd.rawValue) ?? .hkd
     }
 
     // MARK: - View Components
@@ -125,7 +128,8 @@ struct DashboardView: View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 10) {
             statChip(title: "\(inboxCount)", subtitle: "Inbox")
             statChip(title: "\(reviewedCount)", subtitle: "Reviewed")
-            statChip(title: amountString(totalExpenses, currencyCode: dominantCurrency), subtitle: "Total")
+            statChip(title: Currency.amountString(totalExpenses, currencyCode: dominantCurrency.rawValue), subtitle: "Entered")
+            statChip(title: Currency.amountString(totalExpensesHKD, currencyCode: Currency.hkd.rawValue), subtitle: "HKD Total")
             statChip(title: "\(connections.count)", subtitle: "Connected")
         }
         .padding(20)
@@ -146,7 +150,7 @@ struct DashboardView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(.white.opacity(0.65), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(Color.receiptElevatedBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private var emptyActivityCard: some View {
@@ -178,7 +182,7 @@ struct DashboardView: View {
                 Spacer()
                 Image(systemName: "link")
                     .font(.title2)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(.receiptAccentBlue)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -193,9 +197,9 @@ struct DashboardView: View {
         HStack(spacing: 12) {
             Image(systemName: connection.provider.systemImage)
                 .font(.title3)
-                .foregroundStyle(.blue)
+                .foregroundStyle(.receiptAccentBlue)
                 .frame(width: 32, height: 32)
-                .background(Color.blue.opacity(0.12), in: Circle())
+                .background(Color.receiptAccentBlue.opacity(0.12), in: Circle())
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(connection.displayName)
@@ -215,7 +219,7 @@ struct DashboardView: View {
 
             if connection.syncEnabled {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(.receiptAccentGreen)
             }
         }
         .padding(14)
@@ -223,16 +227,6 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(Color.receiptCardBackground)
         )
-    }
-
-    // MARK: - Helpers
-
-    private func amountString(_ amount: Double, currencyCode: String) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = currencyCode
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: amount)) ?? "\(Int(amount))"
     }
 }
 

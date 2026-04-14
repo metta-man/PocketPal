@@ -139,6 +139,15 @@ final class Receipt {
         return asset?.originalFilename ?? "Untitled Receipt"
     }
 
+    var resolvedCurrency: Currency {
+        Currency.from(code: currencyCode) ?? AppPreferences.defaultCurrency
+    }
+
+    var amountInHKD: Double? {
+        guard let totalAmount else { return nil }
+        return ExchangeRateTable.convertToHKD(amount: totalAmount, from: resolvedCurrency)
+    }
+
     func apply(extraction: ReceiptExtraction) {
         if merchantName.isBlank {
             merchantName = extraction.merchantName

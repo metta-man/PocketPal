@@ -30,9 +30,18 @@ struct ReceiptRowView: View {
                     Spacer(minLength: 8)
 
                     if let totalAmount = receipt.totalAmount {
-                        Text(receiptAmountString(totalAmount, currencyCode: receipt.currencyCode))
-                            .font(.headline.weight(.semibold))
-                            .foregroundStyle(.primary)
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(Currency.amountString(totalAmount, currencyCode: receipt.currencyCode))
+                                .font(.headline.weight(.semibold))
+                                .foregroundStyle(.primary)
+
+                            if let convertedAmount = receipt.amountInHKD,
+                               receipt.resolvedCurrency != .hkd {
+                                Text("≈ \(Currency.amountString(convertedAmount, currencyCode: Currency.hkd.rawValue))")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 }
 
@@ -54,28 +63,21 @@ struct ReceiptRowView: View {
         )
     }
 
-    private func receiptAmountString(_ amount: Double, currencyCode: String?) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = currencyCode ?? "USD"
-        return formatter.string(from: NSNumber(value: amount)) ?? "\(amount)"
-    }
-
     @ViewBuilder
     private var statusPill: some View {
         switch receipt.processingState {
         case .queued:
-            ReceiptStatusPill(title: "Queued", tint: .orange, systemImage: "clock")
+            ReceiptStatusPill(title: "Queued", tint: .receiptAccentOrange, systemImage: "clock")
         case .runningOCR:
-            ReceiptStatusPill(title: "Reading Text", tint: .orange, systemImage: "text.viewfinder")
+            ReceiptStatusPill(title: "Reading Text", tint: .receiptAccentOrange, systemImage: "text.viewfinder")
         case .ready:
             if receipt.reviewStatus == .reviewed {
-                ReceiptStatusPill(title: "Reviewed", tint: .green, systemImage: "checkmark.seal.fill")
+                ReceiptStatusPill(title: "Reviewed", tint: .receiptAccentGreen, systemImage: "checkmark.seal.fill")
             } else {
-                ReceiptStatusPill(title: "Ready", tint: .green, systemImage: "sparkles")
+                ReceiptStatusPill(title: "Ready", tint: .receiptAccentGreen, systemImage: "sparkles")
             }
         case .failed:
-            ReceiptStatusPill(title: "Needs Retry", tint: .red, systemImage: "exclamationmark.triangle.fill")
+            ReceiptStatusPill(title: "Needs Retry", tint: .receiptAccentRed, systemImage: "exclamationmark.triangle.fill")
         }
     }
 }

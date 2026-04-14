@@ -14,13 +14,21 @@ enum PocketPalModelContainer {
     private static let storeFilename = "PocketPal.store"
     private static let logger = Logger(subsystem: "com.lumilux.pocketpal", category: "SwiftData")
 
-    static func make(isStoredInMemoryOnly: Bool = false) throws -> ModelContainer {
-        let configuration = try makeConfiguration(isStoredInMemoryOnly: isStoredInMemoryOnly)
+    static func make(isStoredInMemoryOnly: Bool = false, cloudSyncEnabled: Bool = true) throws -> ModelContainer {
+        let configuration = try makeConfiguration(
+            isStoredInMemoryOnly: isStoredInMemoryOnly,
+            cloudSyncEnabled: cloudSyncEnabled
+        )
         let storeLocation = isStoredInMemoryOnly ? "<memory>" : configuration.url.path(percentEncoded: false)
 
         do {
             return try ModelContainer(for: schema, configurations: [configuration])
         } catch {
+            if cloudSyncEnabled && !isStoredInMemoryOnly {
+                logger.error("CloudKit-backed SwiftData store failed to open at \(storeLocation, privacy: .public): \(String(describing: error), privacy: .public)")
+                return try make(isStoredInMemoryOnly: false, cloudSyncEnabled: false)
+            }
+
             guard !isStoredInMemoryOnly else {
                 throw error
             }
@@ -28,38 +36,53 @@ enum PocketPalModelContainer {
             logger.error("SwiftData store failed to open at \(storeLocation, privacy: .public): \(String(describing: error), privacy: .public)")
             try resetPersistentStore()
 
-            let resetConfiguration = try makeConfiguration(isStoredInMemoryOnly: false)
+            let resetConfiguration = try makeConfiguration(
+                isStoredInMemoryOnly: false,
+                cloudSyncEnabled: false
+            )
             return try ModelContainer(for: schema, configurations: [resetConfiguration])
         }
     }
 
     static func makeWithFallback() -> ModelContainer {
         do {
-            return try make()
+            return try make(cloudSyncEnabled: CloudSyncConfiguration.isEnabled)
         } catch {
             logger.fault("Falling back to in-memory SwiftData store after persistent store recovery failed: \(String(describing: error), privacy: .public)")
 
             do {
-                return try make(isStoredInMemoryOnly: true)
+                return try make(isStoredInMemoryOnly: true, cloudSyncEnabled: false)
             } catch {
                 fatalError("Failed to initialize SwiftData container: \(error)")
             }
         }
     }
 
-    private static func makeConfiguration(isStoredInMemoryOnly: Bool) throws -> ModelConfiguration {
+    private static func makeConfiguration(
+        isStoredInMemoryOnly: Bool,
+        cloudSyncEnabled: Bool
+    ) throws -> ModelConfiguration {
         if isStoredInMemoryOnly {
             return ModelConfiguration(
                 schema: schema,
-                isStoredInMemoryOnly: true
+                isStoredInMemoryOnly: true,
+                cloudKitDatabase: .none
             )
         }
 
         let storeURL = try persistentStoreURL()
+        if cloudSyncEnabled {
+            return ModelConfiguration(
+                schema: schema,
+                url: storeURL,
+                cloudKitDatabase: .automatic
+            )
+        }
+
         return ModelConfiguration(
             schema: schema,
             url: storeURL,
-            cloudKitDatabase: .automatic
+            cloudKitDatabase: .none
         )
     }
 

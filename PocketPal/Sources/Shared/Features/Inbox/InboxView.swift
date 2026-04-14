@@ -17,6 +17,7 @@ struct InboxView: View {
     private var receipts: [Receipt]
 
     @State private var isShowingFileImporter = false
+    @State private var isShowingManualEntry = false
     @State private var isImporting = false
     @State private var importErrorMessage: String?
     #if os(iOS)
@@ -72,6 +73,16 @@ struct InboxView: View {
             .toolbarBackground(Color.receiptGroupedBackground, for: .tabBar)
             .toolbarBackground(.visible, for: .tabBar)
             #endif
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    NavigationLink {
+                        ManualEntryView()
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add Manual Expense")
+                }
+            }
             .overlay {
                 if isImporting {
                     ProgressView("Saving Receipts...")
@@ -127,6 +138,9 @@ struct InboxView: View {
             return true
         }
         #endif
+        .navigationDestination(isPresented: $isShowingManualEntry) {
+            ManualEntryView()
+        }
     }
 
     private var processingCount: Int {
@@ -194,7 +208,7 @@ struct InboxView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(.white.opacity(0.65), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(Color.receiptElevatedBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private var emptyStateCard: some View {
@@ -215,6 +229,14 @@ struct InboxView: View {
 
     private var importActions: some View {
         LazyVGrid(columns: actionColumns, alignment: .leading, spacing: 12) {
+            actionButton(
+                title: "Manual",
+                subtitle: "Enter expense without a receipt",
+                systemImage: "plus.circle"
+            ) {
+                isShowingManualEntry = true
+            }
+
             actionButton(
                 title: "Files",
                 subtitle: "PDF, JPG, PNG, HEIC",
@@ -274,7 +296,7 @@ struct InboxView: View {
         VStack(alignment: .leading, spacing: 12) {
             Image(systemName: systemImage)
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(.orange)
+                .foregroundStyle(.receiptAccentOrange)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -289,7 +311,7 @@ struct InboxView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 94, alignment: .leading)
         .padding(14)
-        .background(.white.opacity(0.78), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(Color.receiptElevatedBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private func handleFileImport(_ result: Result<[URL], Error>) {

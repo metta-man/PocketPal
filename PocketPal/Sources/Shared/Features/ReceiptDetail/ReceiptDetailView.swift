@@ -10,10 +10,11 @@ struct ReceiptDetailView: View {
     @State private var hasTransactionDate = false
     @State private var transactionDate = Date()
     @State private var totalAmount = ""
-    @State private var currencyCode = ""
+    @State private var selectedCurrency = Currency.hkd
     @State private var taxAmount = ""
     @State private var category = ""
     @State private var notes = ""
+    @State private var expenseType = ExpenseType.personal
     @State private var isReviewed = false
     @State private var errorMessage: String?
 
@@ -27,7 +28,9 @@ struct ReceiptDetailView: View {
 
                 summaryCard
                 editableFieldsCard
-                ocrCard
+                if receipt.asset != nil || receipt.ocrResult != nil {
+                    ocrCard
+                }
             }
             .padding()
         }
@@ -63,9 +66,9 @@ struct ReceiptDetailView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     statusChip(title: receipt.processingStatusLabel, tint: statusTint, systemImage: statusIcon)
-                    statusChip(title: receipt.importSource.rawValue.capitalized, tint: .blue, systemImage: "square.and.arrow.down")
+                    statusChip(title: receipt.importSource.rawValue.capitalized, tint: .receiptAccentBlue, systemImage: "square.and.arrow.down")
                     if let confidence = receipt.extractionConfidence {
-                        statusChip(title: "Confidence \(Int(confidence * 100))%", tint: .orange, systemImage: "brain")
+                        statusChip(title: "Confidence \(Int(confidence * 100))%", tint: .receiptAccentOrange, systemImage: "brain")
                     }
                 }
             }
@@ -73,10 +76,16 @@ struct ReceiptDetailView: View {
             Divider()
 
             VStack(alignment: .leading, spacing: 8) {
-                Label(receipt.asset?.originalFilename ?? "No file", systemImage: "doc")
+                Label(receipt.asset?.originalFilename ?? "Manual expense", systemImage: receipt.asset == nil ? "square.and.pencil" : "doc")
                 if let processingErrorMessage = receipt.processingErrorMessage, !processingErrorMessage.isEmpty {
                     Label(processingErrorMessage, systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(.receiptAccentRed)
+                }
+                if let totalAmount = receipt.totalAmount {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Original: \(Currency.amountString(totalAmount, currencyCode: receipt.resolvedCurrency.rawValue))")
+                        Text("HKD: \(Currency.amountString(receipt.amountInHKD ?? totalAmount, currencyCode: Currency.hkd.rawValue))")
+                    }
                 }
             }
             .font(.subheadline)
@@ -96,10 +105,11 @@ struct ReceiptDetailView: View {
         hasTransactionDate = receipt.transactionDate != nil
         transactionDate = receipt.transactionDate ?? receipt.importedAt
         totalAmount = receipt.totalAmount.map(numberString) ?? ""
-        currencyCode = receipt.currencyCode ?? ""
+        selectedCurrency = receipt.resolvedCurrency
         taxAmount = receipt.taxAmount.map(numberString) ?? ""
         category = receipt.category ?? ""
         notes = receipt.notes ?? ""
+        expenseType = receipt.expenseType
         isReviewed = receipt.reviewStatus == .reviewed
     }
 
@@ -126,10 +136,27 @@ struct ReceiptDetailView: View {
                     .receiptNumericField()
                 TextField("Tax Amount", text: $taxAmount)
                     .receiptNumericField()
-                TextField("Currency Code", text: $currencyCode)
+
+                Picker("Currency", selection: $selectedCurrency) {
+                    ForEach(Currency.allCases) { currency in
+                        Text("\(currency.flag) \(currency.rawValue)").tag(currency)
+                    }
+                }
+
+                if let parsedAmount = AmountParser.parse(totalAmount) {
+                    Text("HKD Equivalent: \(Currency.amountString(ExchangeRateTable.convertToHKD(amount: parsedAmount, from: selectedCurrency), currencyCode: Currency.hkd.rawValue))")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             fieldStack(title: "Classification") {
+                Picker("Expense Type", selection: $expenseType) {
+                    ForEach(ExpenseType.allCases, id: \.self) { option in
+                        Label(option.displayName, systemImage: option.systemImage)
+                            .tag(option)
+                    }
+                }
                 TextField("Category", text: $category)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
@@ -192,10 +219,11 @@ struct ReceiptDetailView: View {
         receipt.itemDescription = itemDescription.nilIfBlank
         receipt.transactionDate = hasTransactionDate ? transactionDate : nil
         receipt.totalAmount = AmountParser.parse(totalAmount)
-        receipt.currencyCode = currencyCode.nilIfBlank?.uppercased()
+        receipt.currencyCode = selectedCurrency.rawValue
         receipt.taxAmount = AmountParser.parse(taxAmount)
         receipt.category = category.nilIfBlank ?? inferredCategory
         receipt.notes = notes.nilIfBlank
+        receipt.expenseType = expenseType
         receipt.reviewStatus = isReviewed ? .reviewed : .inbox
         receipt.reviewedAt = isReviewed ? (receipt.reviewedAt ?? .now) : nil
         receipt.touch()
@@ -247,11 +275,11 @@ struct ReceiptDetailView: View {
     private var statusTint: Color {
         switch receipt.processingState {
         case .queued, .runningOCR:
-            return .orange
+            return .receiptAccentOrange
         case .ready:
-            return receipt.reviewStatus == .reviewed ? .green : .blue
+            return receipt.reviewStatus == .reviewed ? .receiptAccentGreen : .receiptAccentBlue
         case .failed:
-            return .red
+            return .receiptAccentRed
         }
     }
 

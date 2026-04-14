@@ -21,7 +21,7 @@ struct ReceiptAssetPreview: View {
             }
         }
         .frame(minHeight: 240)
-        .background(Color.secondary.opacity(0.08))
+        .background(Color.receiptPreviewBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 

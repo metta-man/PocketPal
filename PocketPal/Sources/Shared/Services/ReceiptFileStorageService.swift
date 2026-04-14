@@ -16,6 +16,7 @@ protocol ReceiptFileStorageServicing {
     func storeImportedFile(from sourceURL: URL, receiptID: UUID) throws -> StoredReceiptFile
     func storeImportedData(_ document: ImportedReceiptDocument, receiptID: UUID) throws -> StoredReceiptFile
     func fileURL(forRelativePath relativePath: String) -> URL
+    func removeAllStoredFiles() throws
 }
 
 final class ReceiptFileStorageService: ReceiptFileStorageServicing {
@@ -109,6 +110,16 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
         }
 
         return baseDirectory().appending(path: relativePath)
+    }
+
+    func removeAllStoredFiles() throws {
+        let baseURL = baseDirectory()
+        guard fileManager.fileExists(atPath: baseURL.path()) else {
+            return
+        }
+
+        try fileManager.removeItem(at: baseURL)
+        ensureDirectoryExists(at: baseURL)
     }
 
     private func receiptDirectory(for receiptID: UUID) throws -> URL {

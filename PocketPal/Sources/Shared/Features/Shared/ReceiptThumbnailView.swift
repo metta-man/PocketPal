@@ -15,7 +15,7 @@ struct ReceiptThumbnailView: View {
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.secondary.opacity(0.12))
+                        .fill(Color.receiptSecondaryFill)
                     Image(systemName: asset?.kind == .pdf ? "doc.richtext" : "photo")
                         .font(.title2)
                         .foregroundStyle(.secondary)

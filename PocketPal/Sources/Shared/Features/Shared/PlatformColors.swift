@@ -9,6 +9,14 @@ extension Color {
         #endif
     }
 
+    static var receiptElevatedBackground: Color {
+        #if canImport(UIKit)
+        Color(uiColor: .systemBackground)
+        #else
+        Color(nsColor: .controlBackgroundColor)
+        #endif
+    }
+
     static var receiptGroupedBackground: Color {
         #if canImport(UIKit)
         Color(uiColor: .systemGroupedBackground)
@@ -24,4 +32,25 @@ extension Color {
         Color(nsColor: .textBackgroundColor)
         #endif
     }
+
+    static var receiptPreviewBackground: Color {
+        #if canImport(UIKit)
+        Color(uiColor: .secondarySystemGroupedBackground)
+        #else
+        Color(nsColor: .underPageBackgroundColor)
+        #endif
+    }
+
+    static var receiptOutline: Color {
+        #if canImport(UIKit)
+        Color(uiColor: .separator)
+        #else
+        Color(nsColor: .separatorColor)
+        #endif
+    }
+
+    static var receiptAccentBlue: Color { .blue }
+    static var receiptAccentGreen: Color { .green }
+    static var receiptAccentOrange: Color { .orange }
+    static var receiptAccentRed: Color { .red }
 }
