@@ -10,22 +10,22 @@ enum OCRLanguageOption: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .englishUS:
-            return "English"
+            return "英文"
         case .simplifiedChinese:
-            return "Chinese (Simplified)"
+            return "簡體中文"
         case .traditionalChinese:
-            return "Chinese (Traditional)"
+            return "繁體中文"
         }
     }
 
     var detail: String {
         switch self {
         case .englishUS:
-            return "Better for Latin receipts and mixed English totals."
+            return "適合英文收據、外幣或中英混合金額。"
         case .simplifiedChinese:
-            return "Use for Simplified Chinese receipts and invoices."
+            return "適合簡體中文收據和發票。"
         case .traditionalChinese:
-            return "Use for Traditional Chinese receipts and invoices."
+            return "適合香港、台灣等繁體中文收據。"
         }
     }
 }

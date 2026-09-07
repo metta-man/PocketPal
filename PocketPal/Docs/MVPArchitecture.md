@@ -1,5 +1,17 @@
 # PocketPal MVP Architecture
 
+## Infrastructure reset
+
+See `InfrastructureRedesign.md` for the current operating architecture. The MVP is now defined as a local-first receipt ledger:
+
+- durable asset import
+- local OCR
+- deterministic field extraction
+- explicit review state
+- tax-ready export
+
+Cloud extraction, CloudKit, connected accounts, and advanced accounting remain optional modules. They must not be required for launch, review, export, or data recovery. Receipt data stays in `PocketPal.store`; quarantined experiments use `PocketPalExperiments.store`.
+
 ## Proposed folder structure
 
 ```text

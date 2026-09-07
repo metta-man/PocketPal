@@ -1,0 +1,13 @@
+.DS_Store
+
+# Xcode local state
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# Build and verification output
+.build/
+build/
+
+# Logs
+*.log

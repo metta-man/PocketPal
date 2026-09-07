@@ -1,0 +1,21 @@
+name: Infrastructure
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  infrastructure-gate:
+    name: Infrastructure Gate
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install infrastructure tools
+        run: brew install xcodegen ripgrep
+
+      - name: Run infrastructure gate
+        run: Tools/RunInfrastructureGate.sh

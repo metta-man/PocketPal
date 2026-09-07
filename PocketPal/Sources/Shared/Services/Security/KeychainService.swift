@@ -40,6 +40,49 @@ protocol KeychainServicing: Sendable {
     func retrieveSecureString(key: String) throws -> String?
 }
 
+final class LazyKeychainService: KeychainServicing, @unchecked Sendable {
+    private let factory: @Sendable () -> KeychainServicing
+    private let lock = NSLock()
+    private var cachedService: KeychainServicing?
+
+    init(factory: @escaping @Sendable () -> KeychainServicing = { KeychainService() }) {
+        self.factory = factory
+    }
+
+    func store(key: String, data: Data) throws {
+        try service().store(key: key, data: data)
+    }
+
+    func retrieve(key: String) throws -> Data? {
+        try service().retrieve(key: key)
+    }
+
+    func delete(key: String) throws {
+        try service().delete(key: key)
+    }
+
+    func storeSecureString(key: String, value: String) throws {
+        try service().storeSecureString(key: key, value: value)
+    }
+
+    func retrieveSecureString(key: String) throws -> String? {
+        try service().retrieveSecureString(key: key)
+    }
+
+    private func service() -> KeychainServicing {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let cachedService {
+            return cachedService
+        }
+
+        let service = factory()
+        cachedService = service
+        return service
+    }
+}
+
 /// Service for secure storage of OAuth tokens and other credentials
 final class KeychainService: KeychainServicing {
     private let serviceIdentifier: String

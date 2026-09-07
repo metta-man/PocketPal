@@ -26,11 +26,11 @@ struct ReceiptCategoryClassifier {
             (.groceries, [
                 "supermarket", "grocery", "groceries", "fresh market", "market", "produce",
                 "vegetable", "veg", "fruit", "bakery", "butcher", "dairy", "whole foods",
-                "trader joes", "costco"
+                "trader joes", "costco", "超市", "百佳", "惠康", "雜貨", "杂货"
             ]),
             (.meals, [
                 "restaurant", "cafe", "coffee", "tea", "bar", "bistro", "diner", "food",
-                "lunch", "dinner", "breakfast", "meal", "ubereats", "doordash", "deliveroo"
+                "餐廳", "餐厅", "茶餐廳", "咖啡", "飯店", "lunch", "dinner", "breakfast", "meal", "ubereats", "doordash", "deliveroo"
             ]),
             (.travel, [
                 "airlines", "airways", "flight", "airport", "booking", "expedia", "trip",
@@ -41,12 +41,12 @@ struct ReceiptCategoryClassifier {
                 "train", "rail", "ferry", "parking", "toll", "shell", "esso", "petrol", "gas station"
             ]),
             (.office, [
-                "stationery", "office", "printer", "paper", "toner", "notebook", "staples",
+                "文具", "辦公", "办公", "打印", "stationery", "office", "printer", "paper", "toner", "notebook", "staples",
                 "officedepot", "office depot", "workspace", "supplies"
             ]),
             (.shopping, [
                 "mall", "store", "shop", "retail", "uniqlo", "zara", "h&m", "ikea",
-                "amazon", "target", "walmart", "purchase"
+                "amazon", "target", "walmart", "purchase", "淘寶", "淘宝", "天貓", "天猫", "京東", "京东"
             ]),
             (.utilities, [
                 "electric", "electricity", "water bill", "internet", "broadband", "utility",
@@ -71,7 +71,7 @@ struct ReceiptCategoryClassifier {
 
         return value
             .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-            .replacingOccurrences(of: "[^a-z0-9]+", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "[^a-z0-9\\p{Han}]+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
     }

@@ -75,3 +75,58 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: PocketPal
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.finance
+  PocketPal-iOSTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: PocketPal/Tests/iOS
+    dependencies:
+      - target: PocketPal-iOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lumilux.pocketpal.ios.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/PocketPal.app/PocketPal"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+  PocketPal-macOSTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: PocketPal/Tests/macOS
+    dependencies:
+      - target: PocketPal-macOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lumilux.pocketpal.macos.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/PocketPal.app/Contents/MacOS/PocketPal"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  PocketPal-iOS:
+    build:
+      targets:
+        PocketPal-iOS: all
+        PocketPal-iOSTests: [test]
+    test:
+      config: Debug
+      targets:
+        - PocketPal-iOSTests
+    run:
+      config: Debug
+    archive:
+      config: Release
+  PocketPal-macOS:
+    build:
+      targets:
+        PocketPal-macOS: all
+        PocketPal-macOSTests: [test]
+    test:
+      config: Debug
+      targets:
+        - PocketPal-macOSTests
+    run:
+      config: Debug
+    archive:
+      config: Release

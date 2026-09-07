@@ -5,9 +5,6 @@ struct DashboardView: View {
     @Query(sort: [SortDescriptor(\Receipt.importedAt, order: .reverse)])
     private var receipts: [Receipt]
 
-    @Query(sort: [SortDescriptor(\Connection.createdAt, order: .reverse)])
-    private var connections: [Connection]
-
     var body: some View {
         NavigationStack {
             ZStack {
@@ -35,20 +32,6 @@ struct DashboardView: View {
                         } else {
                             ForEach(recentReceipts) { receipt in
                                 ReceiptRowView(receipt: receipt)
-                                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                                    .listRowBackground(Color.clear)
-                            }
-                        }
-                    }
-
-                    Section("Connections") {
-                        if connections.isEmpty {
-                            connectionsEmptyCard
-                                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
-                                .listRowBackground(Color.clear)
-                        } else {
-                            ForEach(connections) { connection in
-                                connectionRow(connection)
                                     .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                                     .listRowBackground(Color.clear)
                             }
@@ -86,11 +69,19 @@ struct DashboardView: View {
     }
 
     private var totalExpenses: Double {
-        receipts.compactMap { $0.totalAmount }.reduce(0, +)
+        receipts.filter { $0.transactionKind == .expense }.compactMap { $0.totalAmount }.reduce(0, +)
     }
 
     private var totalExpensesHKD: Double {
-        receipts.compactMap(\.amountInHKD).reduce(0, +)
+        receipts.filter { $0.transactionKind == .expense }.compactMap(\.amountInHKD).reduce(0, +)
+    }
+
+    private var totalIncomeHKD: Double {
+        receipts.filter { $0.transactionKind == .income }.compactMap(\.amountInHKD).reduce(0, +)
+    }
+
+    private var netCashflowHKD: Double {
+        totalIncomeHKD - totalExpensesHKD
     }
 
     private var dominantCurrency: Currency {
@@ -103,24 +94,40 @@ struct DashboardView: View {
 
     private var dashboardHero: some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Welcome to PocketPal")
-                    .font(.title2.weight(.bold))
-                    .fixedSize(horizontal: false, vertical: true)
-                Text("Track your expenses, manage receipts, and prepare for tax season all in one place.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .top, spacing: 14) {
+                Image(systemName: "wallet.pass.fill")
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(.receiptAccentBlue)
+                    .frame(width: 42, height: 42)
+                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("PocketPal")
+                        .font(.title2.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("Track income and expenses, keep original receipts, and prepare records for tax or reimbursement.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
         .padding(20)
         .background(
             LinearGradient(
-                colors: [Color.blue.opacity(0.14), Color.mint.opacity(0.08)],
+                colors: [
+                    Color.receiptAccentBlue.opacity(0.28),
+                    Color.receiptAccentCyan.opacity(0.20),
+                    Color.receiptAccentGreen.opacity(0.16)
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ),
-            in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color.receiptAccentBlue.opacity(0.22), lineWidth: 1)
         )
     }
 
@@ -128,13 +135,13 @@ struct DashboardView: View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 10) {
             statChip(title: "\(inboxCount)", subtitle: "Inbox")
             statChip(title: "\(reviewedCount)", subtitle: "Reviewed")
-            statChip(title: Currency.amountString(totalExpenses, currencyCode: dominantCurrency.rawValue), subtitle: "Entered")
-            statChip(title: Currency.amountString(totalExpensesHKD, currencyCode: Currency.hkd.rawValue), subtitle: "HKD Total")
-            statChip(title: "\(connections.count)", subtitle: "Connected")
+            statChip(title: Currency.amountString(totalIncomeHKD, currencyCode: Currency.hkd.rawValue), subtitle: "Income")
+            statChip(title: Currency.amountString(totalExpensesHKD, currencyCode: Currency.hkd.rawValue), subtitle: "Expenses")
+            statChip(title: Currency.amountString(netCashflowHKD, currencyCode: Currency.hkd.rawValue), subtitle: "Net HKD")
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.receiptCardBackground)
         )
     }
@@ -150,7 +157,7 @@ struct DashboardView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(Color.receiptElevatedBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(Color.receiptElevatedBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private var emptyActivityCard: some View {
@@ -164,67 +171,7 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(18)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.receiptCardBackground)
-        )
-    }
-
-    private var connectionsEmptyCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Connect Accounts")
-                        .font(.headline)
-                    Text("Link your email and shopping accounts to auto-import receipts.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Image(systemName: "link")
-                    .font(.title2)
-                    .foregroundStyle(.receiptAccentBlue)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.receiptCardBackground)
-        )
-    }
-
-    private func connectionRow(_ connection: Connection) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: connection.provider.systemImage)
-                .font(.title3)
-                .foregroundStyle(.receiptAccentBlue)
-                .frame(width: 32, height: 32)
-                .background(Color.receiptAccentBlue.opacity(0.12), in: Circle())
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(connection.displayName)
-                    .font(.headline)
-                if let lastSync = connection.lastSyncAt {
-                    Text("Last sync: \(lastSync, style: .relative)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text("Not yet synced")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Spacer()
-
-            if connection.syncEnabled {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.receiptAccentGreen)
-            }
-        }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.receiptCardBackground)
         )
     }

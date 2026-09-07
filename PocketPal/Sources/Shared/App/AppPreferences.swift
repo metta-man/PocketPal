@@ -4,6 +4,10 @@ enum AppPreferences {
     static let defaultCurrencyCodeKey = "settings.defaultCurrencyCode"
     static let defaultExpenseTypeKey = "settings.defaultExpenseType"
     static let taxYearStartMonthKey = "settings.taxYearStartMonth"
+    static let cloudReceiptEnhancementEnabledKey = "settings.geminiReceiptExtractionEnabled"
+    static let cloudReceiptUploadConsentKey = "settings.geminiReceiptUploadConsent"
+    static let geminiAPIKeyKey = "credentials.gemini.apiKey"
+    static let openAIAPIKeyKey = "credentials.openai.apiKey"
 
     static var defaultCurrency: Currency {
         get {
@@ -38,6 +42,16 @@ enum AppPreferences {
         }
     }
 
+    static var cloudReceiptEnhancementEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: cloudReceiptEnhancementEnabledKey) }
+        set { UserDefaults.standard.set(newValue, forKey: cloudReceiptEnhancementEnabledKey) }
+    }
+
+    static var cloudReceiptUploadConsentGranted: Bool {
+        get { UserDefaults.standard.bool(forKey: cloudReceiptUploadConsentKey) }
+        set { UserDefaults.standard.set(newValue, forKey: cloudReceiptUploadConsentKey) }
+    }
+
     static func taxYearDescription(referenceDate: Date = .now) -> String {
         let calendar = Calendar.current
         let startMonth = taxYearStartMonth
@@ -52,5 +66,28 @@ enum AppPreferences {
         }
 
         return "\(startDate.formatted(.dateTime.day().month(.wide).year())) to \(endDate.formatted(.dateTime.day().month(.wide).year()))"
+    }
+}
+
+enum InfrastructureFeatureFlags {
+    static let accountingWorkspaceEnabledKey = "features.accountingWorkspaceEnabled"
+
+    static var accountingWorkspaceEnabled: Bool {
+        if let override = ProcessInfo.processInfo.environment["POCKETPAL_ENABLE_ACCOUNTING_WORKSPACE"] {
+            return override == "1" || override.lowercased() == "true"
+        }
+
+        return UserDefaults.standard.bool(forKey: accountingWorkspaceEnabledKey)
+    }
+}
+
+
+enum ReceiptLedger: String, CaseIterable, Identifiable {
+    case personal, business
+    var id: String { rawValue }
+    var title: String { self == .personal ? "個人" : "業務" }
+    var expenseType: ExpenseType { self == .personal ? .personal : .business }
+    func includes(_ receipt: Receipt) -> Bool {
+        self == .personal ? receipt.expenseType == .personal : receipt.expenseType != .personal
     }
 }

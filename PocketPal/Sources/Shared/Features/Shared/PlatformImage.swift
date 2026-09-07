@@ -11,7 +11,7 @@ extension Image {
 }
 
 func loadPlatformImage(from url: URL) -> PlatformImage? {
-    if let image = PlatformImage(contentsOfFile: url.path()) {
+    if let image = PlatformImage(contentsOfFile: url.path(percentEncoded: false)) {
         return image
     }
 

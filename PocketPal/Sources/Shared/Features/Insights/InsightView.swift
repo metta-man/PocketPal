@@ -9,6 +9,14 @@ private enum InsightDateRange: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+private enum InsightTransactionFilter: String, CaseIterable, Identifiable {
+    case all = "All"
+    case income = "Income"
+    case expenses = "Expenses"
+
+    var id: String { rawValue }
+}
+
 private struct CategoryInsight: Identifiable {
     let name: String
     let total: Double
@@ -29,20 +37,36 @@ private struct DailyInsight: Identifiable {
     let receipts: [Receipt]
 
     var id: Date { date }
-    var total: Double { receipts.compactMap(\.totalAmount).reduce(0, +) }
+    var totalHKD: Double { receipts.compactMap(\.signedAmountInHKD).reduce(0, +) }
 }
 
 struct InsightView: View {
     @Query(sort: [SortDescriptor(\Receipt.transactionDate, order: .reverse), SortDescriptor(\Receipt.importedAt, order: .reverse)])
-    private var receipts: [Receipt]
+    private var allReceipts: [Receipt]
+    var ledger: ReceiptLedger = .personal
+    private var receipts: [Receipt] { allReceipts.filter { ledger.includes($0) && $0.reviewStatus == .reviewed } }
 
-    @State private var selectedDateRange: InsightDateRange = .last30Days
-    @State private var selectedCategory = "All Categories"
+    @Environment(\.receiptWorkspace) private var workspace
+    private var selectedDateRange: InsightDateRange {
+        get { InsightDateRange(rawValue: workspace.insightFilters[ledger]?["range"] ?? "") ?? .last30Days }
+        nonmutating set { workspace.insightFilters[ledger, default: [:]]["range"] = newValue.rawValue }
+    }
+    private var rangeBinding: Binding<InsightDateRange> { Binding(get: { selectedDateRange }, set: { selectedDateRange = $0 }) }
+    private var selectedTransactionFilter: InsightTransactionFilter {
+        get { InsightTransactionFilter(rawValue: workspace.insightFilters[ledger]?["kind"] ?? "") ?? .all }
+        nonmutating set { workspace.insightFilters[ledger, default: [:]]["kind"] = newValue.rawValue }
+    }
+    private var kindBinding: Binding<InsightTransactionFilter> { Binding(get: { selectedTransactionFilter }, set: { selectedTransactionFilter = $0 }) }
+    private var selectedCategory: String {
+        get { workspace.insightFilters[ledger]?["category"] ?? "All Categories" }
+        nonmutating set { workspace.insightFilters[ledger, default: [:]]["category"] = newValue }
+    }
+    private var categoryBinding: Binding<String> { Binding(get: { selectedCategory }, set: { selectedCategory = $0 }) }
 
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.receiptGroupedBackground
+                ledger.background
                     .ignoresSafeArea()
 
                 List {
@@ -61,8 +85,8 @@ struct InsightView: View {
                     Section("Category Breakdown") {
                         if categoryBreakdown.isEmpty {
                             emptyCard(
-                                title: "No categorized expenses yet",
-                                message: "Review receipts and add categories to compare spending patterns here."
+                                title: "No categorized entries yet",
+                                message: "Review entries and add categories to compare income and spending patterns here."
                             )
                             .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
                             .listRowBackground(Color.clear)
@@ -75,7 +99,7 @@ struct InsightView: View {
                         }
                     }
 
-                    Section("Expenses by Date") {
+                    Section("Money by Date") {
                         if dailyBreakdown.isEmpty {
                             emptyCard(
                                 title: "Nothing in this range",
@@ -97,12 +121,12 @@ struct InsightView: View {
                 .scrollContentBackground(.hidden)
                 #endif
             }
-            .navigationTitle("Insights")
+            .navigationTitle("\(ledger.title) · 分析")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color.receiptGroupedBackground, for: .navigationBar)
+            .toolbarBackground(ledger.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarBackground(Color.receiptGroupedBackground, for: .tabBar)
+            .toolbarBackground(ledger.background, for: .tabBar)
             .toolbarBackground(.visible, for: .tabBar)
             #endif
         }
@@ -115,6 +139,7 @@ struct InsightView: View {
     private var filteredReceipts: [Receipt] {
         receiptsWithAmounts.filter { receipt in
             guard matchesDateRange(receipt) else { return false }
+            guard matchesTransactionFilter(receipt) else { return false }
             guard selectedCategory != "All Categories" else { return true }
             return normalizedCategoryName(for: receipt) == selectedCategory
         }
@@ -131,7 +156,7 @@ struct InsightView: View {
         return grouped.map { category, receipts in
             CategoryInsight(
                 name: category,
-                total: receipts.compactMap(\.totalAmount).reduce(0, +),
+                total: receipts.compactMap(\.signedAmountInHKD).reduce(0, +),
                 count: receipts.count
             )
         }
@@ -162,7 +187,7 @@ struct InsightView: View {
         return grouped.map { code, receipts in
             CurrencyTotal(
                 currencyCode: code,
-                amount: receipts.compactMap(\.totalAmount).reduce(0, +)
+                amount: receipts.map { signedAmount(for: $0) }.reduce(0, +)
             )
         }
         .sorted { lhs, rhs in
@@ -173,25 +198,46 @@ struct InsightView: View {
         }
     }
 
+    private var incomeHKD: Double {
+        filteredReceipts
+            .filter { $0.transactionKind == .income }
+            .compactMap(\.amountInHKD)
+            .reduce(0, +)
+    }
+
+    private var expenseHKD: Double {
+        filteredReceipts
+            .filter { $0.transactionKind == .expense }
+            .compactMap(\.amountInHKD)
+            .reduce(0, +)
+    }
+
+    private var netHKD: Double {
+        incomeHKD - expenseHKD
+    }
+
     private var insightHero: some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("See where your money goes over time.")
                     .font(.title2.weight(.bold))
                     .fixedSize(horizontal: false, vertical: true)
-                Text("Filter receipts by date and category, then compare spending totals without leaving PocketPal.")
+                Text("Filter entries by date, type, and category, then compare income, spending, and net cash flow.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             LazyVGrid(columns: summaryColumns, spacing: 10) {
-                summaryChip(title: "\(filteredReceipts.count)", subtitle: "Expenses")
+                summaryChip(title: "\(filteredReceipts.count)", subtitle: "Entries")
+                summaryChip(title: amountString(incomeHKD, currencyCode: Currency.hkd.rawValue), subtitle: "Income")
+                summaryChip(title: amountString(expenseHKD, currencyCode: Currency.hkd.rawValue), subtitle: "Expenses")
+                summaryChip(title: amountString(netHKD, currencyCode: Currency.hkd.rawValue), subtitle: "Net HKD")
                 summaryChip(title: topCategory, subtitle: "Top Category")
             }
 
             if currencyTotals.isEmpty {
-                Text("No expense totals available yet.")
+                Text("No totals available yet.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             } else {
@@ -200,7 +246,7 @@ struct InsightView: View {
                         ForEach(currencyTotals) { total in
                             summaryChip(
                                 title: amountString(total.amount, currencyCode: total.currencyCode),
-                                subtitle: "Spend"
+                                subtitle: "Net"
                             )
                             .frame(width: 140, alignment: .leading)
                         }
@@ -211,11 +257,19 @@ struct InsightView: View {
         .padding(20)
         .background(
             LinearGradient(
-                colors: [Color.blue.opacity(0.14), Color.mint.opacity(0.1)],
+                colors: [
+                    Color.receiptAccentViolet.opacity(0.24),
+                    Color.receiptAccentBlue.opacity(0.16),
+                    Color.receiptAccentGreen.opacity(0.14)
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ),
-            in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color.receiptAccentViolet.opacity(0.22), lineWidth: 1)
         )
     }
 
@@ -224,14 +278,21 @@ struct InsightView: View {
             Text("Filters")
                 .font(.headline)
 
-            Picker("Date Range", selection: $selectedDateRange) {
+            Picker("Date Range", selection: rangeBinding) {
                 ForEach(InsightDateRange.allCases) { range in
                     Text(range.rawValue).tag(range)
                 }
             }
             .pickerStyle(.segmented)
 
-            Picker("Category", selection: $selectedCategory) {
+            Picker("Type", selection: kindBinding) {
+                ForEach(InsightTransactionFilter.allCases) { filter in
+                    Text(filter.rawValue).tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            Picker("Category", selection: categoryBinding) {
                 ForEach(categoryOptions, id: \.self) { category in
                     Text(category).tag(category)
                 }
@@ -240,7 +301,7 @@ struct InsightView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.receiptCardBackground)
         )
     }
@@ -256,7 +317,7 @@ struct InsightView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(Color.receiptElevatedBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private func categoryRow(_ insight: CategoryInsight) -> some View {
@@ -264,19 +325,20 @@ struct InsightView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(insight.name)
                     .font(.headline)
-                Text("\(insight.count) \(insight.count == 1 ? "expense" : "expenses")")
+                Text("\(insight.count) \(insight.count == 1 ? "entry" : "entries")")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            Text(amountString(insight.total, currencyCode: dominantCurrencyCode(for: insight.name)))
+            Text(amountString(insight.total, currencyCode: Currency.hkd.rawValue))
                 .font(.headline.weight(.semibold))
+                .foregroundStyle(insight.total >= 0 ? .receiptAccentGreen : .primary)
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.receiptCardBackground)
         )
     }
@@ -287,8 +349,9 @@ struct InsightView: View {
                 Text(day.date, format: .dateTime.day().month(.wide).year())
                     .font(.headline)
                 Spacer()
-                Text(amountString(day.total, currencyCode: dominantCurrencyCode(for: day.receipts)))
+                Text(amountString(day.totalHKD, currencyCode: Currency.hkd.rawValue))
                     .font(.headline.weight(.semibold))
+                    .foregroundStyle(day.totalHKD >= 0 ? .receiptAccentGreen : .primary)
             }
 
             ForEach(day.receipts) { receipt in
@@ -304,14 +367,15 @@ struct InsightView: View {
 
                     Spacer()
 
-                    Text(amountString(receipt.totalAmount ?? 0, currencyCode: normalizedCurrencyCode(for: receipt)))
+                    Text(amountString(signedAmount(for: receipt), currencyCode: normalizedCurrencyCode(for: receipt)))
                         .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(receipt.transactionKind == .income ? .receiptAccentGreen : .primary)
                 }
             }
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.receiptCardBackground)
         )
     }
@@ -327,7 +391,7 @@ struct InsightView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(18)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.receiptCardBackground)
         )
     }
@@ -343,7 +407,7 @@ struct InsightView: View {
     }
 
     private func matchesDateRange(_ receipt: Receipt) -> Bool {
-        let referenceDate = receipt.transactionDate ?? receipt.importedAt
+        guard let referenceDate = receipt.transactionDate else { return selectedDateRange == .allTime }
         let now = Date()
 
         switch selectedDateRange {
@@ -355,6 +419,17 @@ struct InsightView: View {
         case .thisMonth:
             guard let interval = calendar.dateInterval(of: .month, for: now) else { return true }
             return interval.contains(referenceDate)
+        }
+    }
+
+    private func matchesTransactionFilter(_ receipt: Receipt) -> Bool {
+        switch selectedTransactionFilter {
+        case .all:
+            return true
+        case .income:
+            return receipt.transactionKind == .income
+        case .expenses:
+            return receipt.transactionKind == .expense
         }
     }
 
@@ -382,6 +457,11 @@ struct InsightView: View {
         formatter.numberStyle = .currency
         formatter.currencyCode = currencyCode
         return formatter.string(from: NSNumber(value: amount)) ?? "\(amount)"
+    }
+
+    private func signedAmount(for receipt: Receipt) -> Double {
+        let amount = receipt.totalAmount ?? 0
+        return receipt.transactionKind == .income ? amount : -amount
     }
 
     private func compareReceipts(lhs: Receipt, rhs: Receipt) -> Bool {

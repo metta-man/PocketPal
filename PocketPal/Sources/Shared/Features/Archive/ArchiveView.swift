@@ -61,11 +61,11 @@ struct ArchiveView: View {
                         }
                         .padding(20)
                         .background(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
                                 .fill(Color.receiptCardBackground)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                        .stroke(Color.receiptOutline.opacity(0.2), lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                        .stroke(Color.receiptOutline.opacity(0.18), lineWidth: 1)
                                 )
                         )
                         .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 10, trailing: 16))

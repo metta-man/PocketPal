@@ -18,6 +18,31 @@ enum ReceiptAssetKind: String, Codable, CaseIterable, Sendable {
     case pdf
 }
 
+enum TransactionKind: String, Codable, CaseIterable, Sendable, Identifiable {
+    case expense
+    case income
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .expense:
+            return "Expense"
+        case .income:
+            return "Income"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .expense:
+            return "arrow.down.circle.fill"
+        case .income:
+            return "arrow.up.circle.fill"
+        }
+    }
+}
+
 enum ReceiptCategory: String, Codable, CaseIterable, Sendable {
     case groceries = "Groceries"
     case meals = "Meals"

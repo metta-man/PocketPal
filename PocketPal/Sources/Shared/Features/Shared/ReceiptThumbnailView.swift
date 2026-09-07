@@ -14,7 +14,7 @@ struct ReceiptThumbnailView: View {
                     .scaledToFill()
             } else {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: 8)
                         .fill(Color.receiptSecondaryFill)
                     Image(systemName: asset?.kind == .pdf ? "doc.richtext" : "photo")
                         .font(.title2)
@@ -23,7 +23,7 @@ struct ReceiptThumbnailView: View {
             }
         }
         .frame(width: 56, height: 56)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
         .task(id: asset?.id) {
             await loadImage()
         }

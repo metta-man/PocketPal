@@ -19,17 +19,25 @@ protocol ReceiptFileStorageServicing {
     func removeAllStoredFiles() throws
 }
 
+enum ReceiptFileStorageLocationPolicy: Sendable {
+    case localOnly
+    case iCloudDocumentsWhenAvailable
+}
+
 final class ReceiptFileStorageService: ReceiptFileStorageServicing {
     private let fileManager: FileManager
     private let storageRootName = "PocketPal"
     private let receiptsFolderName = "Receipts"
     private let cloudContainerIdentifier: String
+    private let locationPolicy: ReceiptFileStorageLocationPolicy
 
     init(
         fileManager: FileManager = .default,
+        locationPolicy: ReceiptFileStorageLocationPolicy = .localOnly,
         cloudContainerIdentifier: String = CloudSyncConfiguration.containerIdentifier
     ) {
         self.fileManager = fileManager
+        self.locationPolicy = locationPolicy
         self.cloudContainerIdentifier = cloudContainerIdentifier
     }
 
@@ -47,15 +55,19 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
         let fileExtension = preferredFileExtension(for: storedContentType, fallback: sourceURL.pathExtension)
         let destinationURL = try receiptDirectory(for: receiptID).appending(path: "original.\(fileExtension)")
 
-        if fileManager.fileExists(atPath: destinationURL.path()) {
+        if fileManager.fileExists(atPath: destinationURL.path(percentEncoded: false)) {
             try fileManager.removeItem(at: destinationURL)
         }
 
         try writeImportedFile(from: sourceURL, detectedContentType: contentType, to: destinationURL)
-        guard fileManager.fileExists(atPath: destinationURL.path()) else {
+        guard fileManager.fileExists(atPath: destinationURL.path(percentEncoded: false)) else {
             throw CocoaError(.fileNoSuchFile)
         }
-        let thumbnailRelativePath = try generateThumbnailIfPossible(sourceURL: destinationURL, receiptID: receiptID)
+        let thumbnailRelativePath = try generateThumbnailIfPossible(
+            sourceURL: destinationURL,
+            receiptID: receiptID,
+            contentType: storedContentType
+        )
         let fileSizeBytes = try fileSize(for: destinationURL)
 
         return StoredReceiptFile(
@@ -79,10 +91,14 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
         let destinationURL = receiptDirectory.appending(path: "original.\(fileExtension)")
 
         try writeImportedData(document.data, detectedContentType: contentType, to: destinationURL)
-        guard fileManager.fileExists(atPath: destinationURL.path()) else {
+        guard fileManager.fileExists(atPath: destinationURL.path(percentEncoded: false)) else {
             throw CocoaError(.fileNoSuchFile)
         }
-        let thumbnailRelativePath = try generateThumbnailIfPossible(sourceURL: destinationURL, receiptID: receiptID)
+        let thumbnailRelativePath = try generateThumbnailIfPossible(
+            sourceURL: destinationURL,
+            receiptID: receiptID,
+            contentType: storedContentType
+        )
         let fileSizeBytes = try fileSize(for: destinationURL)
 
         return StoredReceiptFile(
@@ -98,7 +114,7 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
     func fileURL(forRelativePath relativePath: String) -> URL {
         if relativePath.hasPrefix("/") {
             let legacyURL = URL(filePath: relativePath)
-            if fileManager.fileExists(atPath: legacyURL.path()) {
+            if fileManager.fileExists(atPath: legacyURL.path(percentEncoded: false)) {
                 return legacyURL
             }
 
@@ -114,7 +130,7 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
 
     func removeAllStoredFiles() throws {
         let baseURL = baseDirectory()
-        guard fileManager.fileExists(atPath: baseURL.path()) else {
+        guard fileManager.fileExists(atPath: baseURL.path(percentEncoded: false)) else {
             return
         }
 
@@ -147,6 +163,10 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
     }
 
     private func preferredBaseDirectory() -> URL? {
+        guard locationPolicy == .iCloudDocumentsWhenAvailable else {
+            return nil
+        }
+
         guard let ubiquityContainer = iCloudBaseDirectory() else {
             return nil
         }
@@ -191,13 +211,13 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
     }
 
     private func ensureDirectoryExists(at url: URL) {
-        if !fileManager.fileExists(atPath: url.path()) {
+        if !fileManager.fileExists(atPath: url.path(percentEncoded: false)) {
             try? fileManager.createDirectory(at: url, withIntermediateDirectories: true)
         }
     }
 
     private func migrateLocalFilesIfNeeded(from sourceBase: URL, to destinationBase: URL) {
-        guard fileManager.fileExists(atPath: sourceBase.path()) else {
+        guard fileManager.fileExists(atPath: sourceBase.path(percentEncoded: false)) else {
             return
         }
 
@@ -212,7 +232,9 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
         }
 
         for case let sourceURL as URL in enumerator {
-            let relativePath = sourceURL.path.replacingOccurrences(of: sourceBase.path + "/", with: "")
+            let sourceBasePath = sourceBase.path(percentEncoded: false)
+            let sourcePath = sourceURL.path(percentEncoded: false)
+            let relativePath = sourcePath.replacingOccurrences(of: sourceBasePath + "/", with: "")
             let destinationURL = destinationBase.appending(path: relativePath)
             let isDirectory = (try? sourceURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
 
@@ -221,7 +243,7 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
                 continue
             }
 
-            guard !fileManager.fileExists(atPath: destinationURL.path()) else {
+            guard !fileManager.fileExists(atPath: destinationURL.path(percentEncoded: false)) else {
                 continue
             }
 
@@ -237,8 +259,8 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
         let normalizedBaseURL = baseDirectory()
             .standardizedFileURL
             .resolvingSymlinksInPath()
-        let basePath = normalizedBaseURL.path()
-        let absolutePath = normalizedAbsoluteURL.path()
+        let basePath = normalizedBaseURL.path(percentEncoded: false)
+        let absolutePath = normalizedAbsoluteURL.path(percentEncoded: false)
 
         guard absolutePath.hasPrefix(basePath) else {
             return absolutePath
@@ -317,7 +339,11 @@ final class ReceiptFileStorageService: ReceiptFileStorageServicing {
         return contentType
     }
 
-    private func generateThumbnailIfPossible(sourceURL: URL, receiptID: UUID) throws -> String? {
+    private func generateThumbnailIfPossible(sourceURL: URL, receiptID: UUID, contentType: UTType) throws -> String? {
+        guard contentType.conforms(to: .image) || contentType.conforms(to: .pdf) else {
+            return nil
+        }
+
         guard let source = CGImageSourceCreateWithURL(sourceURL as CFURL, nil) else {
             return nil
         }

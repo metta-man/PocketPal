@@ -31,13 +31,13 @@ struct ReceiptRowView: View {
 
                     if let totalAmount = receipt.totalAmount {
                         VStack(alignment: .trailing, spacing: 4) {
-                            Text(Currency.amountString(totalAmount, currencyCode: receipt.currencyCode))
+                            Text(amountLabel(totalAmount))
                                 .font(.headline.weight(.semibold))
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(receipt.transactionKind == .income ? .receiptAccentGreen : .primary)
 
                             if let convertedAmount = receipt.amountInHKD,
                                receipt.resolvedCurrency != .hkd {
-                                Text("≈ \(Currency.amountString(convertedAmount, currencyCode: Currency.hkd.rawValue))")
+                                Text("≈ \(amountLabel(convertedAmount, currencyCode: Currency.hkd.rawValue))")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -49,35 +49,67 @@ struct ReceiptRowView: View {
                     statusPill
 
                     ReceiptStatusPill(
-                        title: receipt.importSource.rawValue.capitalized,
-                        tint: .blue,
-                        systemImage: "square.and.arrow.down"
+                        title: receipt.transactionKind.localizedDisplayName,
+                        tint: receipt.transactionKind == .income ? .receiptAccentGreen : .receiptAccentBlue,
+                        systemImage: receipt.transactionKind.systemImage
                     )
+
+                    if receipt.transactionKind == .expense, receipt.expenseType.isTaxDeductible {
+                        ReceiptStatusPill(
+                            title: receipt.taxReadiness.localizedReadinessLabel,
+                            tint: receipt.taxReadiness.isReadyForTaxExport ? .receiptAccentGreen : .receiptAccentOrange,
+                            systemImage: receipt.taxReadiness.isReadyForTaxExport ? "checkmark" : "checklist"
+                        )
+                    }
+                }
+
+                if let issuePreview = taxIssuePreview {
+                    Label(issuePreview.localizedTitle, systemImage: issuePreview.systemImage)
+                        .font(.caption)
+                        .foregroundStyle(.receiptAccentOrange)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.receiptCardBackground)
         )
+        .accessibilityElement(children: .combine)
+    }
+
+    private func amountLabel(_ amount: Double, currencyCode: String? = nil) -> String {
+        let prefix = receipt.transactionKind == .income ? "+" : "-"
+        return "\(prefix)\(Currency.amountString(amount, currencyCode: currencyCode ?? receipt.currencyCode))"
+    }
+
+    private var taxIssuePreview: ReceiptReadinessIssue? {
+        guard receipt.transactionKind == .expense,
+              receipt.expenseType.isTaxDeductible,
+              !receipt.taxReadiness.isReadyForTaxExport else {
+            return nil
+        }
+
+        return receipt.taxReadiness.issues.first
     }
 
     @ViewBuilder
     private var statusPill: some View {
         switch receipt.processingState {
         case .queued:
-            ReceiptStatusPill(title: "Queued", tint: .receiptAccentOrange, systemImage: "clock")
+            ReceiptStatusPill(title: "等候處理", tint: .receiptAccentOrange, systemImage: "clock")
         case .runningOCR:
-            ReceiptStatusPill(title: "Reading Text", tint: .receiptAccentOrange, systemImage: "text.viewfinder")
+            ReceiptStatusPill(title: "讀取文字", tint: .receiptAccentOrange, systemImage: "text.viewfinder")
         case .ready:
             if receipt.reviewStatus == .reviewed {
-                ReceiptStatusPill(title: "Reviewed", tint: .receiptAccentGreen, systemImage: "checkmark.seal.fill")
+                ReceiptStatusPill(title: "已審核", tint: .receiptAccentGreen, systemImage: "checkmark.seal.fill")
             } else {
-                ReceiptStatusPill(title: "Ready", tint: .receiptAccentGreen, systemImage: "sparkles")
+                ReceiptStatusPill(title: "待審核", tint: .receiptAccentGreen, systemImage: "sparkles")
             }
         case .failed:
-            ReceiptStatusPill(title: "Needs Retry", tint: .receiptAccentRed, systemImage: "exclamationmark.triangle.fill")
+            ReceiptStatusPill(title: "需要重試", tint: .receiptAccentRed, systemImage: "exclamationmark.triangle.fill")
         }
     }
 }

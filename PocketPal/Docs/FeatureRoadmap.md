@@ -1,5 +1,17 @@
 # PocketPal Advanced Features Roadmap
 
+## 2026 Infrastructure Reset
+
+This roadmap is superseded by `InfrastructureRedesign.md` until the receipt ledger loop is proven end to end.
+
+The product promise is not "connect every account." The product promise is: import a receipt, extract the facts, review the record, and export tax-ready evidence. Email, e-commerce, full accounting, payroll, and inventory are quarantined experiments, not core infrastructure.
+
+Before any phase below resumes, it must pass three gates:
+
+1. It imports into the existing `Receipt` ledger instead of creating a parallel source of truth.
+2. It works with the network unavailable, except for the explicit provider call it owns.
+3. It has a deletion condition if real usage does not justify the added schema, UI, and test surface.
+
 ## Overview
 
 This document outlines the implementation roadmap for adding advanced expense management features to PocketPal, targeting both personal users and small businesses for tax submission purposes.

@@ -9,6 +9,7 @@ final class Receipt {
     var reviewedAt: Date?
     var reviewStatusRawValue: String
     var importSourceRawValue: String
+    var transactionKindRawValue: String?
     var processingStateRawValue: String
     var processingErrorMessage: String?
     var merchantName: String?
@@ -20,6 +21,10 @@ final class Receipt {
     var category: String?
     var notes: String?
     var extractionConfidence: Double?
+    var extractionProviderRawValue: String?
+    var extractionDecisionRawValue: String?
+    var cloudExtractionAttemptedAt: Date?
+    var cloudExtractionErrorMessage: String?
     var searchText: String
 
     // MARK: - Expense Classification (for tax/business use)
@@ -40,6 +45,7 @@ final class Receipt {
         updatedAt: Date = .now,
         reviewStatus: ReceiptReviewStatus = .inbox,
         importSource: ReceiptImportSource,
+        transactionKind: TransactionKind = .expense,
         processingState: ReceiptProcessingState = .queued,
         merchantName: String? = nil,
         itemDescription: String? = nil,
@@ -50,6 +56,10 @@ final class Receipt {
         category: String? = nil,
         notes: String? = nil,
         extractionConfidence: Double? = nil,
+        extractionProvider: ReceiptExtractionProvider? = nil,
+        extractionDecision: ReceiptExtractionDecision? = nil,
+        cloudExtractionAttemptedAt: Date? = nil,
+        cloudExtractionErrorMessage: String? = nil,
         searchText: String = "",
         expenseType: ExpenseType = .personal,
         taxCategory: TaxCategory? = nil,
@@ -63,6 +73,7 @@ final class Receipt {
         self.reviewedAt = nil
         self.reviewStatusRawValue = reviewStatus.rawValue
         self.importSourceRawValue = importSource.rawValue
+        self.transactionKindRawValue = transactionKind.rawValue
         self.processingStateRawValue = processingState.rawValue
         self.processingErrorMessage = nil
         self.merchantName = merchantName
@@ -74,6 +85,10 @@ final class Receipt {
         self.category = category
         self.notes = notes
         self.extractionConfidence = extractionConfidence
+        self.extractionProviderRawValue = extractionProvider?.rawValue
+        self.extractionDecisionRawValue = extractionDecision?.rawValue
+        self.cloudExtractionAttemptedAt = cloudExtractionAttemptedAt
+        self.cloudExtractionErrorMessage = cloudExtractionErrorMessage
         self.searchText = searchText
         self.expenseTypeRawValue = expenseType.rawValue
         self.taxCategoryRawValue = taxCategory?.rawValue
@@ -90,6 +105,11 @@ final class Receipt {
     var importSource: ReceiptImportSource {
         get { ReceiptImportSource(rawValue: importSourceRawValue) ?? .files }
         set { importSourceRawValue = newValue.rawValue }
+    }
+
+    var transactionKind: TransactionKind {
+        get { TransactionKind(rawValue: transactionKindRawValue ?? "") ?? .expense }
+        set { transactionKindRawValue = newValue.rawValue }
     }
 
     var processingState: ReceiptProcessingState {
@@ -116,6 +136,22 @@ final class Receipt {
             return ConnectionProvider(rawValue: raw)
         }
         set { sourceProviderRawValue = newValue?.rawValue }
+    }
+
+    var extractionProvider: ReceiptExtractionProvider? {
+        get {
+            guard let raw = extractionProviderRawValue else { return nil }
+            return ReceiptExtractionProvider(rawValue: raw)
+        }
+        set { extractionProviderRawValue = newValue?.rawValue }
+    }
+
+    var extractionDecision: ReceiptExtractionDecision? {
+        get {
+            guard let raw = extractionDecisionRawValue else { return nil }
+            return ReceiptExtractionDecision(rawValue: raw)
+        }
+        set { extractionDecisionRawValue = newValue?.rawValue }
     }
 
     var processingStatusLabel: String {
@@ -148,7 +184,13 @@ final class Receipt {
         return ExchangeRateTable.convertToHKD(amount: totalAmount, from: resolvedCurrency)
     }
 
+    var signedAmountInHKD: Double? {
+        guard let amountInHKD else { return nil }
+        return transactionKind == .income ? amountInHKD : -amountInHKD
+    }
+
     func apply(extraction: ReceiptExtraction) {
+        let previousValues = ReceiptReviewValues(receipt: self)
         if merchantName.isBlank {
             merchantName = extraction.merchantName
         }
@@ -161,6 +203,12 @@ final class Receipt {
         taxAmount = taxAmount ?? extraction.taxAmount
         category = category ?? extraction.category
         extractionConfidence = extraction.confidence
+        extractionProvider = extraction.primaryProvider
+        extractionDecision = extraction.decision
+        if ReceiptReviewValues(receipt: self) != previousValues {
+            reviewStatus = .inbox
+            reviewedAt = nil
+        }
     }
 
     func rebuildSearchText() {
@@ -169,6 +217,7 @@ final class Receipt {
             itemDescription,
             category,
             notes,
+            transactionKind.displayName,
             expenseType.displayName,
             taxCategory?.displayName,
             sourceProvider?.displayName,

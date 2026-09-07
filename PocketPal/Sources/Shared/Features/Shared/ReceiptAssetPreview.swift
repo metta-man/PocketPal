@@ -22,7 +22,7 @@ struct ReceiptAssetPreview: View {
         }
         .frame(minHeight: 240)
         .background(Color.receiptPreviewBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     @ViewBuilder
