@@ -408,8 +408,8 @@ struct InboxView: View {
             if codes.isEmpty { Text("未有已確認金額").font(.subheadline) }
             ForEach(codes, id: \.self) { code in
                 let entries = confirmed.filter { ($0.currencyCode ?? "未指定幣種") == code }
-                let expenses = entries.filter { $0.transactionKind == .expense }.reduce(0.0) { $0 + ($1.totalAmount ?? 0) }
-                let income = entries.filter { $0.transactionKind == .income }.reduce(0.0) { $0 + ($1.totalAmount ?? 0) }
+                let expenses = entries.reduce(0.0) { $0 + NSDecimalNumber(decimal: $1.cashExpense).doubleValue }
+                let income = entries.reduce(0.0) { $0 + NSDecimalNumber(decimal: $1.cashIncome).doubleValue }
                 Text("\(code) · 支出 \(expenses.formatted()) · 收入 \(income.formatted())")
                     .font(.subheadline)
             }

@@ -38,11 +38,21 @@ struct SettingsView: View {
     @AppStorage(AppPreferences.taxYearStartMonthKey)
     private var taxYearStartMonth = AppPreferences.taxYearStartMonth
 
+    @State private var deliveryExportPending = false
+    @State private var showingDelivery = false
+    @State private var deliveryLedger: ReceiptLedger = .personal
+    @State private var deliveryStart = ReceiptDeliveryPackage.calendar.date(from: ReceiptDeliveryPackage.calendar.dateComponents([.year, .month], from: .now)) ?? .now
+    @State private var deliveryEnd = Date.now
+    @State private var includeUndated = false
+    @State private var confirmedOnly = false
     @State private var exportDocument: PocketPalExportDocument?
     @State private var isShowingExporter = false
     @State private var exportFilename = "PocketPal-Export"
     @State private var exportContentType: UTType = .json
     @State private var clearReceiptDataConfirmation = false
+    @State private var transferCandidates: [Receipt] = []
+    @State private var transferConfirmation = false
+    @State private var transferredCount: Int?
     @State private var errorMessage: String?
 
     private var selectedLanguageCodes: [String] {
@@ -57,6 +67,12 @@ struct SettingsView: View {
 
     var body: some View {
         settingsContent
+            .sheet(isPresented: $showingDelivery, onDismiss: {
+                if deliveryExportPending {
+                    deliveryExportPending = false
+                    isShowingExporter = true
+                }
+            }) { deliverySheet }
             .fileExporter(
                 isPresented: $isShowingExporter,
                 document: exportDocument,
@@ -66,6 +82,20 @@ struct SettingsView: View {
                 if case .failure(let error) = result {
                     errorMessage = error.localizedDescription
                 }
+            }
+            .alert("將個人記錄轉移至業務？", isPresented: $transferConfirmation) {
+                Button("轉移 \(transferCandidates.count) 筆記錄") { transferPersonalReceipts() }
+                Button("取消", role: .cancel) { transferCandidates = [] }
+            } message: {
+                Text("將轉移所選批次的 \(transferCandidates.count) 筆個人收據及手動記錄，包括已封存記錄。原有相片、OCR、金額及備註會保留，記錄會改為待確認，並從個人空間移至業務空間。日後新增記錄的預設用途不變。")
+            }
+            .alert("轉移完成", isPresented: Binding(
+                get: { transferredCount != nil },
+                set: { if !$0 { transferredCount = nil } }
+            )) {
+                Button("好", role: .cancel) { transferredCount = nil }
+            } message: {
+                Text("已將 \(transferredCount ?? 0) 筆記錄轉移至業務空間，請核對用途及稅務分類。")
             }
             .alert("清除收據資料？", isPresented: $clearReceiptDataConfirmation) {
                 Button("清除收據", role: .destructive) {
@@ -177,8 +207,25 @@ struct SettingsView: View {
         }
     }
 
+    private var personalReceipts: [Receipt] {
+        receipts.filter { $0.expenseType == .personal }
+    }
+
     private var dataManagementSection: some View {
         Section {
+            Button {
+                transferCandidates = personalReceipts
+                transferConfirmation = true
+            } label: {
+                SettingsActionRow(
+                    title: "全部個人記錄轉移至業務",
+                    subtitle: "共 \(personalReceipts.count) 筆，包括收據及手動記錄；轉移前會再次確認。",
+                    systemImage: "arrow.right.arrow.left"
+                )
+            }
+            .disabled(personalReceipts.isEmpty)
+            .accessibilityIdentifier("settings.transferPersonalToBusiness")
+
             Button {
                 prepareExport(.csv)
             } label: {
@@ -190,11 +237,11 @@ struct SettingsView: View {
             }
 
             Button {
-                prepareExport(.folder)
+                showingDelivery = true
             } label: {
                 SettingsActionRow(
-                    title: "匯出收據相片資料夾",
-                    subtitle: "儲存 receipts.csv 和所有原始收據相片。",
+                    title: "整理及匯出收支紀錄包",
+                    subtitle: "選期間、檢查缺件，連原始圖片及 PDF 一次匯出。",
                     systemImage: "folder.badge.plus"
                 )
             }
@@ -203,8 +250,8 @@ struct SettingsView: View {
                 prepareExport(.json)
             } label: {
                 SettingsActionRow(
-                    title: "匯出收據 JSON",
-                    subtitle: "備份設定和收據資料。",
+                    title: "匯出基本收據 JSON",
+                    subtitle: "不含附件及收支追蹤；完整備份請使用收支管理內的備份功能。",
                     systemImage: "curlybraces"
                 )
             }
@@ -263,6 +310,95 @@ struct SettingsView: View {
         )
     }
 
+    private var deliveryReceipts: [Receipt] {
+        ReceiptDeliveryPackage.select(receipts, ledger: deliveryLedger, start: deliveryStart, end: deliveryEnd,
+                                      includeUndated: includeUndated, confirmedOnly: confirmedOnly)
+    }
+
+    private var deliveryTotals: [String] {
+        var totals: [String: (income: Decimal, expense: Decimal)] = [:]
+        for receipt in deliveryReceipts {
+            guard receipt.totalAmount?.isFinite == true else { continue }
+            let code = receipt.currencyCode ?? receipt.resolvedCurrency.rawValue
+            var total = totals[code] ?? (0, 0)
+            for entry in receipt.cashEntries(start: deliveryStart, end: deliveryEnd) {
+                total.income += entry.income; total.expense += entry.expense
+            }
+            totals[code] = total
+        }
+        return totals.keys.sorted().map { code in
+            let total = totals[code]!
+            return "\(code) 收入 \(total.income.formatted()) · 支出 \(total.expense.formatted()) · 淨收支 \((total.income - total.expense).formatted())"
+        }
+    }
+
+    private var deliverySheet: some View {
+        NavigationStack {
+            Form {
+                Section("選擇紀錄") {
+                    Picker("空間", selection: $deliveryLedger) {
+                        ForEach(ReceiptLedger.allCases) { Text($0.title).tag($0) }
+                    }
+                    DatePicker("開始日期", selection: $deliveryStart, displayedComponents: .date)
+                    DatePicker("結束日期", selection: $deliveryEnd, displayedComponents: .date)
+                    Toggle("包含無日期紀錄", isOn: $includeUndated)
+                    Text("此空間有 \(receipts.filter { deliveryLedger.includes($0) && $0.transactionDate == nil }.count) 筆無日期紀錄，無法判斷所屬期間。")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Toggle("只匯出已確認紀錄", isOn: $confirmedOnly)
+                }
+                Section("匯出預覽") {
+                    Text("匯出 \(deliveryReceipts.count) 筆；此空間排除 \(receipts.filter { deliveryLedger.includes($0) }.count - deliveryReceipts.count) 筆")
+                    Text("包括月度摘要、收支明細、原幣合計、圖片、PDF 及缺件清單。")
+                    Text("範圍為收支紀錄；已匯入收支管理的人工及發票會一併包含；未匯入的獨立會計資料不包含。")
+                        .font(.caption).foregroundStyle(.secondary)
+                    ForEach(deliveryTotals, id: \.self) { Text($0).font(.subheadline) }
+                    Text("未確認或缺件的紀錄會清楚標示；欠金額不當作零。")
+                        .font(.caption).foregroundStyle(.secondary)
+                    ForEach(deliveryReceipts.filter { !deliveryIssues($0).isEmpty }) { receipt in
+                        VStack(alignment: .leading) {
+                            Text(receipt.displayMerchantName)
+                            Text(deliveryIssues(receipt).joined(separator: "；"))
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                    if ReceiptDeliveryPackage.calendar.startOfDay(for: deliveryStart) > ReceiptDeliveryPackage.calendar.startOfDay(for: deliveryEnd) { Text("開始日期不可遲於結束日期。").foregroundStyle(.red) }
+                }
+                Section {
+                    Button("匯出這 \(deliveryReceipts.count) 筆紀錄") { prepareDelivery() }
+                        .disabled(deliveryReceipts.isEmpty || ReceiptDeliveryPackage.calendar.startOfDay(for: deliveryStart) > ReceiptDeliveryPackage.calendar.startOfDay(for: deliveryEnd))
+                        .accessibilityIdentifier("settings.exportDeliveryPackage")
+                }
+            }
+            .environment(\.timeZone, ReceiptDeliveryPackage.calendar.timeZone)
+            .navigationTitle("整理收支紀錄")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("取消") { showingDelivery = false } } }
+        }
+        .frame(minWidth: 320, minHeight: 460)
+    }
+
+    private func deliveryIssues(_ receipt: Receipt) -> [String] {
+        ReceiptDeliveryPackage.issues(for: receipt) { services.fileStorageService.fileURL(forRelativePath: $0) }
+    }
+
+    private func prepareDelivery() {
+        do {
+            let selected = deliveryReceipts
+            let formatter = DateFormatter()
+            formatter.timeZone = ReceiptDeliveryPackage.calendar.timeZone
+            formatter.dateFormat = "yyyy-MM-dd"
+            let scope = "\(deliveryLedger.title)空間；\(formatter.string(from: deliveryStart)) 至 \(formatter.string(from: deliveryEnd))；\(confirmedOnly ? "只匯出已確認" : "包含未確認")；\(includeUndated ? "包含無日期紀錄" : "排除無日期紀錄")"
+            let wrapper = try ReceiptDeliveryPackage.make(receipts: selected, scope: scope,
+                excludedCount: receipts.filter { deliveryLedger.includes($0) }.count - selected.count, start: deliveryStart, end: deliveryEnd) {
+                    services.fileStorageService.fileURL(forRelativePath: $0)
+                }
+            exportDocument = PocketPalExportDocument(fileWrapper: wrapper, contentType: .folder)
+            exportFilename = "PocketPal-Records-\(exportDateStamp)"
+            exportContentType = .folder
+            deliveryExportPending = true
+            showingDelivery = false
+        } catch { errorMessage = error.localizedDescription }
+    }
+
     private func prepareExport(_ format: SettingsExportFormat) {
         do {
             switch format {
@@ -311,7 +447,7 @@ struct SettingsView: View {
     private func makeCSVData() -> Data {
         let rows = [
             ReceiptCSVRow.header
-        ] + receipts.map { ReceiptCSVRow(receipt: $0, photoFilename: exportPhotoFilename(for: $0)) }
+        ] + receipts.filter { !$0.finance.isTemplate }.map { ReceiptCSVRow(receipt: $0, photoFilename: exportPhotoFilename(for: $0)) }
             .map(\.fields)
 
         let csv = "\u{FEFF}" + rows
@@ -381,7 +517,10 @@ struct SettingsView: View {
     }
 
     private static func csvEscapedField(_ value: String) -> String {
-        let escaped = value.replacingOccurrences(of: "\"", with: "\"\"")
+        let leading = value.trimmingCharacters(in: .whitespacesAndNewlines).first
+        let isNumber = value.range(of: #"^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"#, options: .regularExpression) != nil
+        let safe = !isNumber && leading.map { "=+-@".contains($0) } == true ? "'" + value : value
+        let escaped = safe.replacingOccurrences(of: "\"", with: "\"\"")
         if escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"") {
             return "\"\(escaped)\""
         }
@@ -447,6 +586,17 @@ struct SettingsView: View {
             errorMessage = "收據檔案已刪除，但移除紀錄時儲存失敗：\(error.localizedDescription)。請重新開啟 app 重新同步。"
             return
         }
+    }
+
+    private func transferPersonalReceipts() {
+        do {
+            transferredCount = try ReceiptBusinessTransfer.move(transferCandidates) {
+                try modelContext.save()
+            }
+        } catch {
+            errorMessage = "轉移未完成，記錄已保留原有用途。\n\(error.localizedDescription)"
+        }
+        transferCandidates = []
     }
 
     private var exportDateStamp: String {

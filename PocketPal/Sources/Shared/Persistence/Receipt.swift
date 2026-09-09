@@ -9,6 +9,7 @@ final class Receipt {
     var reviewedAt: Date?
     var reviewStatusRawValue: String
     var importSourceRawValue: String
+    var financeMetadataJSON: String?
     var transactionKindRawValue: String?
     var processingStateRawValue: String
     var processingErrorMessage: String?
@@ -185,8 +186,8 @@ final class Receipt {
     }
 
     var signedAmountInHKD: Double? {
-        guard let amountInHKD else { return nil }
-        return transactionKind == .income ? amountInHKD : -amountInHKD
+        guard totalAmount != nil else { return nil }
+        return cashIncomeHKD - cashExpenseHKD
     }
 
     func apply(extraction: ReceiptExtraction) {
@@ -240,6 +241,44 @@ private extension Optional where Wrapped == String {
             return value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         case .none:
             return true
+        }
+    }
+}
+
+/// Reclassifies the confirmed batch in place, retaining assets and OCR relationships.
+@MainActor
+enum ReceiptBusinessTransfer {
+    @discardableResult
+    static func move(_ receipts: [Receipt], persist: () throws -> Void) throws -> Int {
+        var seen = Set<UUID>()
+        let candidates = receipts.filter {
+            !$0.isDeleted && $0.expenseType == .personal && seen.insert($0.id).inserted
+        }
+        let snapshots = candidates.map {
+            (receipt: $0, expenseType: $0.expenseTypeRawValue, status: $0.reviewStatusRawValue,
+             reviewedAt: $0.reviewedAt, updatedAt: $0.updatedAt, searchText: $0.searchText)
+        }
+        guard !candidates.isEmpty else { return 0 }
+        do {
+            for receipt in candidates {
+                receipt.expenseType = .business
+                receipt.reviewStatus = .inbox
+                receipt.reviewedAt = nil
+                receipt.touch()
+                receipt.rebuildSearchText()
+            }
+            try persist()
+            return candidates.count
+        } catch {
+            // Restore only fields touched here; preserve unrelated context edits.
+            for snapshot in snapshots {
+                snapshot.receipt.expenseTypeRawValue = snapshot.expenseType
+                snapshot.receipt.reviewStatusRawValue = snapshot.status
+                snapshot.receipt.reviewedAt = snapshot.reviewedAt
+                snapshot.receipt.updatedAt = snapshot.updatedAt
+                snapshot.receipt.searchText = snapshot.searchText
+            }
+            throw error
         }
     }
 }

@@ -50,7 +50,7 @@ final class MacAccountingWorkspaceInfrastructureTests: XCTestCase {
         }
 
         XCTAssertFalse(InfrastructureFeatureFlags.accountingWorkspaceEnabled)
-        XCTAssertEqual(MacWorkspaceDestination.enabledDestinations, [.overview, .receipts, .archive, .insights, .tax, .settings])
+        XCTAssertEqual(MacWorkspaceDestination.enabledDestinations, [.overview, .receipts, .archive, .insights, .tax, .finance, .settings])
         XCTAssertFalse(MacWorkspaceDestination.enabledDestinations.contains(.banking))
 
         var receiptContainer: ModelContainer? = try PocketPalModelContainer.make(

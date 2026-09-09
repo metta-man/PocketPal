@@ -25,7 +25,7 @@ struct ReceiptTaxReadiness {
     }
 
     var isReadyForTaxExport: Bool {
-        receipt.transactionKind == .expense && receipt.expenseType.isTaxDeductible && issues.isEmpty
+        receipt.transactionKind == .expense && receipt.expenseType.isTaxDeductible && !receipt.finance.isTemplate && receipt.finance.treatment == .regular && receipt.finance.matchedRecord == nil && issues.isEmpty
     }
 
     var readinessLabel: String {
@@ -84,7 +84,7 @@ struct ReceiptReviewRequirements {
         category = receipt.category
         isTaxExportCandidate = receipt.transactionKind == .expense && receipt.expenseType.isTaxDeductible
         taxCategory = receipt.taxCategory
-        hasAttachment = receipt.asset != nil
+        hasAttachment = !receipt.allEvidence.isEmpty
     }
 
     var issues: [ReceiptReadinessIssue] {
@@ -240,8 +240,18 @@ enum ReceiptReviewPersistence {
         let previousReviewedAt = receipt.reviewedAt
         let previousUpdatedAt = receipt.updatedAt
         let previousSearchText = receipt.searchText
+        let previousFinance = receipt.financeMetadataJSON
         do {
             values.apply(to: receipt)
+            if receipt.finance.payroll != nil && values.totalAmount != previous.totalAmount {
+                throw FinanceWorkflowError.invalid("人工金額請在付款、附件、項目及審批頁的人工欄位修改，以保持應發及僱主成本一致。")
+            }
+            if receipt.finance.tracksPayments && receipt.faceAmount < receipt.paidAmount {
+                throw FinanceWorkflowError.invalid("總金額不可少於已記錄付款；請先核對或更正付款紀錄。")
+            }
+            if !receipt.finance.payments.isEmpty && (values.currencyCode != previous.currencyCode || values.transactionKindRawValue != previous.transactionKindRawValue) {
+                throw FinanceWorkflowError.invalid("已有付款紀錄，不能直接改變貨幣或收支方向。")
+            }
             if confirmed && !ReceiptReviewRequirements(receipt: receipt).issues.isEmpty {
                 throw ReviewError.incomplete
             }
@@ -249,6 +259,10 @@ enum ReceiptReviewPersistence {
             receipt.reviewedAt = confirmed ? .now : nil
             receipt.touch()
             receipt.rebuildSearchText()
+            var metadata = receipt.finance
+            metadata.audit.append(FinanceAudit(actor: "本機使用者", action: "\(confirmed ? "確認" : "修改")原始資料；金額 \(previous.totalAmount.map(String.init(describing:)) ?? "空白") → \(values.totalAmount.map(String.init(describing:)) ?? "空白")；商戶 \(previous.merchantName ?? "") → \(values.merchantName ?? "")"))
+            if previous != values && metadata.approval == "已批准" { metadata.approval = "待審批" }
+            receipt.finance = metadata
             try persist()
         } catch {
             previous.apply(to: receipt)
@@ -256,6 +270,7 @@ enum ReceiptReviewPersistence {
             receipt.reviewedAt = previousReviewedAt
             receipt.updatedAt = previousUpdatedAt
             receipt.searchText = previousSearchText
+            receipt.financeMetadataJSON = previousFinance
             throw error
         }
     }

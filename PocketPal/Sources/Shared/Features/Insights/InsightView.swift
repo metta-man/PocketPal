@@ -200,15 +200,13 @@ struct InsightView: View {
 
     private var incomeHKD: Double {
         filteredReceipts
-            .filter { $0.transactionKind == .income }
-            .compactMap(\.amountInHKD)
+            .map(\.cashIncomeHKD)
             .reduce(0, +)
     }
 
     private var expenseHKD: Double {
         filteredReceipts
-            .filter { $0.transactionKind == .expense }
-            .compactMap(\.amountInHKD)
+            .map(\.cashExpenseHKD)
             .reduce(0, +)
     }
 
@@ -460,8 +458,7 @@ struct InsightView: View {
     }
 
     private func signedAmount(for receipt: Receipt) -> Double {
-        let amount = receipt.totalAmount ?? 0
-        return receipt.transactionKind == .income ? amount : -amount
+        NSDecimalNumber(decimal: receipt.cashIncome - receipt.cashExpense).doubleValue
     }
 
     private func compareReceipts(lhs: Receipt, rhs: Receipt) -> Bool {

@@ -110,7 +110,7 @@ enum WorkspaceSummary {
         guard let month = calendar.dateInterval(of: .month, for: now) else { return [] }
         let eligible = receipts.filter {
             ledger.includes($0) && $0.reviewStatus == .reviewed && $0.totalAmount != nil &&
-            $0.transactionDate.map { month.contains($0) } == true
+            ($0.transactionDate.map { $0 >= month.start && $0 < month.end } == true || $0.finance.payments.contains { $0.date >= month.start && $0.date < month.end })
         }
         let grouped = Dictionary(grouping: eligible) { receipt in
             receipt.currencyCode ?? "未指定幣種"
@@ -122,11 +122,9 @@ enum WorkspaceSummary {
             var income = 0.0
             var expense = 0.0
             for receipt in receipts {
-                let amount = receipt.totalAmount ?? 0
-                if receipt.transactionKind == .income {
-                    income += amount
-                } else if receipt.transactionKind == .expense {
-                    expense += amount
+                for entry in receipt.cashEntries(start: month.start, end: month.end.addingTimeInterval(-1)) {
+                    income += NSDecimalNumber(decimal: entry.income).doubleValue
+                    expense += NSDecimalNumber(decimal: entry.expense).doubleValue
                 }
             }
             totals.append(WorkspaceCurrencyTotal(

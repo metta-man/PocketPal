@@ -88,6 +88,6 @@ enum ReceiptLedger: String, CaseIterable, Identifiable {
     var title: String { self == .personal ? "個人" : "業務" }
     var expenseType: ExpenseType { self == .personal ? .personal : .business }
     func includes(_ receipt: Receipt) -> Bool {
-        self == .personal ? receipt.expenseType == .personal : receipt.expenseType != .personal
+        !receipt.finance.isTemplate && (self == .personal ? receipt.expenseType == .personal : receipt.expenseType != .personal)
     }
 }

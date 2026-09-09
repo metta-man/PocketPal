@@ -73,11 +73,11 @@ struct DashboardView: View {
     }
 
     private var totalExpensesHKD: Double {
-        receipts.filter { $0.transactionKind == .expense }.compactMap(\.amountInHKD).reduce(0, +)
+        receipts.map(\.cashExpenseHKD).reduce(0, +)
     }
 
     private var totalIncomeHKD: Double {
-        receipts.filter { $0.transactionKind == .income }.compactMap(\.amountInHKD).reduce(0, +)
+        receipts.map(\.cashIncomeHKD).reduce(0, +)
     }
 
     private var netCashflowHKD: Double {

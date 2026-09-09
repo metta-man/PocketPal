@@ -19,6 +19,7 @@ private enum MacWorkspaceSection: String, CaseIterable, Identifiable {
 enum MacWorkspaceDestination: String, CaseIterable, Identifiable {
     case overview
     case settings
+    case finance
     case receipts
     case archive
     case insights
@@ -38,13 +39,14 @@ enum MacWorkspaceDestination: String, CaseIterable, Identifiable {
             return allCases
         }
 
-        return [.overview, .receipts, .archive, .insights, .tax, .settings]
+        return [.overview, .receipts, .archive, .insights, .tax, .finance, .settings]
     }
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
+        case .finance: return "收支管理"
         case .settings: return "設定"
         case .overview:
             return "總覽"
@@ -75,6 +77,7 @@ enum MacWorkspaceDestination: String, CaseIterable, Identifiable {
 
     var systemImage: String {
         switch self {
+        case .finance: return "dollarsign.circle"
         case .settings: return "gearshape"
         case .overview:
             return "rectangle.grid.2x2"
@@ -105,7 +108,7 @@ enum MacWorkspaceDestination: String, CaseIterable, Identifiable {
 
     fileprivate var section: MacWorkspaceSection {
         switch self {
-        case .overview, .receipts, .archive, .insights, .tax, .settings:
+        case .overview, .receipts, .archive, .insights, .tax, .finance, .settings:
             return .workspace
         case .banking, .sales, .bills:
             return .money
@@ -134,7 +137,7 @@ enum MacWorkspaceDestination: String, CaseIterable, Identifiable {
             return .automation
         case .operations:
             return .operations
-        case .overview, .receipts, .archive, .insights, .tax, .settings:
+        case .overview, .receipts, .archive, .insights, .tax, .finance, .settings:
             return nil
         }
     }
@@ -207,7 +210,7 @@ struct MacWorkspaceContentView: View {
         })
     }
     private var destinations: [MacWorkspaceDestination] {
-        ledger == .personal ? [.overview, .receipts, .insights, .settings] : MacWorkspaceDestination.enabledDestinations
+        ledger == .personal ? [.overview, .receipts, .insights, .finance, .settings] : MacWorkspaceDestination.enabledDestinations
     }
     private func destinationTitle(_ destination: MacWorkspaceDestination) -> String {
         if destination == .overview { return ledger == .personal ? "生活總覽" : "工作台" }
@@ -295,6 +298,8 @@ struct MacWorkspaceContentView: View {
                     .onAppear { workspace.filters[ledger] = .reviewed }
             case .insights:
                 InsightView(ledger: ledger)
+            case .finance:
+                FinanceWorkspaceView(ledger: ledger)
             case .settings:
                 SettingsView()
             case .tax:

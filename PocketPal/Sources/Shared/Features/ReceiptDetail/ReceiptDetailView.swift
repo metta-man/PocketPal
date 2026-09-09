@@ -115,6 +115,7 @@ private struct ReceiptReviewEditor: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 detailHeader
+                NavigationLink("付款、附件、項目及審批") { FinanceRecordView(receipt: receipt) }
                 if receipt.asset != nil || isTaxExportCandidate { evidenceCard }
                 if receipt.asset != nil { geminiActionCard }
                 editableFieldsCard

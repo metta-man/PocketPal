@@ -33,6 +33,7 @@ struct RootTabView: View {
                 if ledger == .business {
                     TaxReportView().tabItem { Label("匯出", systemImage: "square.and.arrow.up") }.tag("tax")
                 }
+                FinanceWorkspaceView(ledger: ledger).tabItem { Label("收支", systemImage: "dollarsign.circle") }.tag("finance")
                 SettingsView().tabItem { Label("設定", systemImage: "gearshape") }.tag("settings")
             }
             .id(ledger)
